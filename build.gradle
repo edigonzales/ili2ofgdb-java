@@ -31,8 +31,21 @@ repositories {
     maven {
         url "http://jars.interlis.ch"
     }
+    maven {
+        // filegdb4j snapshots (pure Java FileGDB implementation)
+        url "https://jars.interlis.guru/snapshots/"
+        mavenContent {
+            snapshotsOnly()
+        }
+    }
     mavenCentral()
 }
+
+// filegdb4j version used by the ili2ofgdb flavor; override with
+// -Dfilegdb4jVersion=<version> if needed.
+def filegdb4jVersion = System.getProperty('filegdb4jVersion', '0.1.0-SNAPSHOT')
+def filegdb4jIsSnapshot = filegdb4jVersion.endsWith('-SNAPSHOT')
+
 
 Properties properties = new Properties()
 File propFile=project.rootProject.file('user.properties')
@@ -207,6 +220,23 @@ sourceSets {
     runtimeClasspath += sourceSets.test.output
     runtimeClasspath += sourceSets.ili2fgdb.output
   }
+  ili2ofgdb {
+    java {
+    	srcDirs=['ili2ofgdb/src']
+    }
+    compileClasspath += sourceSets.main.output
+  }
+  ili2ofgdbTest {
+    java {
+    	srcDirs=['ili2ofgdb/test/java']
+    }
+    compileClasspath += sourceSets.main.output
+    compileClasspath += sourceSets.test.output
+    compileClasspath += sourceSets.ili2ofgdb.output
+    runtimeClasspath += sourceSets.main.output
+    runtimeClasspath += sourceSets.test.output
+    runtimeClasspath += sourceSets.ili2ofgdb.output
+  }
   ili2mssql {
     java {
     	srcDirs=['ili2mssql/src']
@@ -331,6 +361,19 @@ configurations {
 	ili2fgdbTestRuntimeOnly {
 		extendsFrom ili2fgdbRuntimeOnly
 	}
+	ili2ofgdbImplementation {
+		extendsFrom implementation
+	}
+	ili2ofgdbRuntimeOnly {
+		extendsFrom runtimeOnly
+	}
+	ili2ofgdbTestImplementation {
+		extendsFrom testImplementation
+		extendsFrom ili2ofgdbImplementation
+	}
+	ili2ofgdbTestRuntimeOnly {
+		extendsFrom ili2ofgdbRuntimeOnly
+	}
 	ili2mssqlImplementation {
 		extendsFrom implementation
 	}
@@ -394,6 +437,9 @@ dependencies {
 	ili2fgdbImplementation group: 'ch.ehi', name: 'fgdb4j', version: "1.1.1"
 	ili2fgdbImplementation "antlr:antlr:2.7.7" 	
 	compileOnly group: 'ch.ehi', name: 'fgdb4j', version: "1.1.1" // add as compileOnly, so that eclipse sees it
+	ili2ofgdbImplementation(group: 'ch.so.agi', name: 'filegdb4j-core', version: filegdb4jVersion, changing: filegdb4jIsSnapshot)
+	ili2ofgdbImplementation "antlr:antlr:2.7.7"
+	compileOnly(group: 'ch.so.agi', name: 'filegdb4j-core', version: filegdb4jVersion, changing: filegdb4jIsSnapshot) // add as compileOnly, so that eclipse sees it
 	ili2mssqlImplementation group: 'com.microsoft.sqlserver', name: 'mssql-jdbc', version: '6.4.0.jre7'
 	compileOnly group: 'com.microsoft.sqlserver', name: 'mssql-jdbc', version: '6.4.0.jre7' // add as compileOnly, so that eclipse sees it
 	ili2oraImplementation files('libs/ojdbc14.jar')
@@ -617,6 +663,50 @@ task ili2fgdbTest(type: Test) {
     classpath = sourceSets.ili2fgdbTest.runtimeClasspath
     testClassesDirs = sourceSets.ili2fgdbTest.output.classesDirs
     testLogging.exceptionFormat = 'full'
+}
+if(!JavaVersion.current().isJava8()){
+	// the flavor must stay consumable on Java 8, like the ili2db core
+	compileIli2ofgdbJava.options.compilerArgs.addAll(['--release', '8'])
+}
+task ili2ofgdbJar(dependsOn: jar,type: Jar) {
+	baseName = 'ili2ofgdb'
+    from sourceSets.ili2ofgdb.output
+  manifest {
+    attributes(
+      "Main-Class": "ch.ehi.ili2ofgdb.OfgdbMain",
+      "Class-Path": 'libs/'+jar.archiveName+' '+configurations.ili2ofgdbRuntimeClasspath.collect { 'libs/'+it.getName() }.join(' '))
+  }   
+}
+task ili2ofgdbBindist(dependsOn:[usrdoc,ili2ofgdbJar], type: Zip){
+	baseName = 'ili2ofgdb'
+	destinationDir = file('dist')
+	from ili2ofgdbJar
+	into('docs'){
+		from files(fileTree("docs").include("LICENSE.*"),"docs/README.txt","docs/CHANGELOG.txt","build/docs/ili2db.html")
+	}
+	into('libs'){
+		from configurations.ili2ofgdbRuntimeClasspath
+		from jar
+	}
+}
+task ili2ofgdbTest(type: Test) {
+	maxParallelForks = 1
+	forkEvery = 1
+    classpath = sourceSets.ili2ofgdbTest.runtimeClasspath
+    testClassesDirs = sourceSets.ili2ofgdbTest.output.classesDirs
+    testLogging.exceptionFormat = 'full'
+    include '**/*Test.class'
+    include '**/*Tests.class'
+    include '**/*TestCase.class'
+    exclude '**/*TestSetup.class'
+    exclude '**/*TestFiles.class'
+}
+task verifyUpstreamCoreUnmodified(type: Exec) {
+	group = 'verification'
+	description = 'Fails if imported ili2db core code, shared tests or other flavors differ from upstream master.'
+	doFirst {
+		commandLine 'bash', 'tools/check-upstream-drift.sh'
+	}
 }
 task ili2mssqlJar(dependsOn: jar,type: Jar) {
 	baseName = 'ili2mssql'

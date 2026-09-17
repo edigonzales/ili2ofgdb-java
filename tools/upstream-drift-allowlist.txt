@@ -1,0 +1,8 @@
+# Intentional divergences from upstream claeis/ili2db.
+#
+# One repository-relative path per line. Keep this list as short as possible:
+# every entry means that imported upstream code was modified and must be
+# reviewed again on the next upstream import.
+#
+# Format: <path>    # <reason>
+#

@@ -46,16 +46,16 @@ public class OfgdbInteropTest {
         Ili2db.run(config, null);
 
         Map<String, Long> counts = OfgdbTestGdal.featureCounts(TEST_DB);
-        assertEquals(Long.valueOf(1), counts.get("classmultikoord2"));
-        assertEquals(Long.valueOf(1), counts.get("multiline2"));
-        assertEquals(Long.valueOf(1), counts.get("multisurface2"));
+        assertEquals(Long.valueOf(1), counts.get("classkoord2"));
+        assertEquals(Long.valueOf(1), counts.get("line2"));
+        assertEquals(Long.valueOf(1), counts.get("surface2"));
 
         Map<String, String> types = OfgdbTestGdal.geometryTypes(TEST_DB);
-        assertEquals("Multi Point", types.get("classmultikoord2"));
-        assertEquals("Multi Line String", types.get("multiline2"));
-        assertEquals("Multi Polygon", types.get("multisurface2"));
+        assertEquals("Point", types.get("classkoord2"));
+        assertEquals("Multi Line String", types.get("line2"));
+        assertEquals("Multi Polygon", types.get("surface2"));
 
-        String arcs = OfgdbTestGdal.run(ogrinfo, "-geom=SUMMARY", TEST_DB, "multiline2");
+        String arcs = OfgdbTestGdal.run(ogrinfo, "-geom=SUMMARY", TEST_DB, "line2");
         assertTrue("expected a circular string arc in the GDAL output:\n" + arcs,
                 arcs.contains("CIRCULARSTRING"));
 

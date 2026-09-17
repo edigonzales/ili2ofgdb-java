@@ -123,12 +123,12 @@ public final class OfgdbTestGdal {
         Map<String, Long> counts = new LinkedHashMap<String, Long>();
         String layer = null;
         for (String line : output.split("\n")) {
-            Matcher layerMatcher = Pattern.compile("^\\d+:\\s+(\\S+).*$").matcher(line);
+            Matcher layerMatcher = Pattern.compile("^Layer name:\\s+(\\S+)\\s*$").matcher(line.trim());
             if (layerMatcher.matches()) {
                 layer = layerMatcher.group(1);
                 continue;
             }
-            Matcher countMatcher = Pattern.compile("^Feature Count:\\s+(\\d+)\\s*$").matcher(line);
+            Matcher countMatcher = Pattern.compile("^Feature Count:\\s+(\\d+)\\s*$").matcher(line.trim());
             if (countMatcher.matches() && layer != null) {
                 counts.put(layer, Long.valueOf(countMatcher.group(1)));
             }
@@ -140,12 +140,12 @@ public final class OfgdbTestGdal {
         Map<String, String> types = new LinkedHashMap<String, String>();
         String layer = null;
         for (String line : output.split("\n")) {
-            Matcher layerMatcher = Pattern.compile("^\\d+:\\s+(\\S+).*$").matcher(line);
+            Matcher layerMatcher = Pattern.compile("^Layer name:\\s+(\\S+)\\s*$").matcher(line.trim());
             if (layerMatcher.matches()) {
                 layer = layerMatcher.group(1);
                 continue;
             }
-            Matcher typeMatcher = Pattern.compile("^Geometry:\\s+(\\S+)\\s*$").matcher(line);
+            Matcher typeMatcher = Pattern.compile("^Geometry:\\s+(.+?)\\s*$").matcher(line.trim());
             if (typeMatcher.matches() && layer != null) {
                 types.put(layer, typeMatcher.group(1));
             }

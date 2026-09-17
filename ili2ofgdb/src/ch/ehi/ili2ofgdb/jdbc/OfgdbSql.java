@@ -684,15 +684,17 @@ public final class OfgdbSql {
             column.geometryKind = parts[0].trim().toUpperCase(Locale.ROOT);
             column.srsId = parts.length > 1 ? parseInt(parts[1].trim(), 0) : 0;
             column.dimension = parts.length > 2 ? parseInt(parts[2].trim(), 2) : 2;
-            for (int i = 3; i < parts.length; i++) {
-                String part = parts[i].trim();
-                if ("INDEX".equalsIgnoreCase(part)) {
-                    column.spatialIndex = true;
-                } else if (!part.isEmpty() && column.xyResolution == null) {
-                    column.xyResolution = part;
-                } else if (!part.isEmpty()) {
-                    column.xyTolerance = part;
-                }
+            int offset = 3;
+            if (parts.length > offset && "INDEX".equalsIgnoreCase(parts[offset].trim())) {
+                column.spatialIndex = true;
+                offset++;
+            }
+            // positional XY precision: resolution and tolerance may be empty
+            if (parts.length > offset) {
+                column.xyResolution = emptyToNull(parts[offset].trim());
+            }
+            if (parts.length > offset + 1) {
+                column.xyTolerance = emptyToNull(parts[offset + 1].trim());
             }
             column.type = "OFGDB_GEOMETRY";
         } else {
@@ -871,6 +873,10 @@ public final class OfgdbSql {
             return value.substring(1, value.length() - 1).replace("''", "'");
         }
         return value;
+    }
+
+    private static String emptyToNull(String text) {
+        return text == null || text.isEmpty() ? null : text;
     }
 
     private static int indexOfOutsideString(String text, char searched) {

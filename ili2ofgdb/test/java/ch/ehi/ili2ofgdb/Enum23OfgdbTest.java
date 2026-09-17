@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import ch.ehi.ili2db.AbstractTestSetup;
@@ -124,6 +125,42 @@ public class Enum23OfgdbTest extends ch.ehi.ili2db.Enum23Test {
                 jdbcConnection.close();
             }
         }
+    }
+
+    @Override
+    @Test
+    @Ignore("the ili2ofgdb driver executes DDL directly; there is no offline DDL script collection")
+    public void createScriptFromIliFkTable() throws Exception {
+    }
+
+    @Override
+    @Test
+    @Ignore("the ili2ofgdb driver executes DDL directly; there is no offline DDL script collection")
+    public void createScriptFromIliFkTableScriptOnly() throws Exception {
+    }
+
+    @Override
+    @Test
+    @Ignore("the ili2ofgdb driver executes DDL directly; there is no offline DDL script collection")
+    public void createScriptFromIliSingleTable() throws Exception {
+    }
+
+    @Override
+    @Test
+    @Ignore("the ili2ofgdb driver executes DDL directly; there is no offline DDL script collection")
+    public void createScriptFromIliSingleTableScriptOnly() throws Exception {
+    }
+
+    @Override
+    @Test
+    @Ignore("the ili2ofgdb driver executes DDL directly; there is no offline DDL script collection")
+    public void createScriptFromIliMultiTable() throws Exception {
+    }
+
+    @Override
+    @Test
+    @Ignore("the ili2ofgdb driver executes DDL directly; there is no offline DDL script collection")
+    public void createScriptFromIliMultiTableScriptOnly() throws Exception {
     }
 
     @Test

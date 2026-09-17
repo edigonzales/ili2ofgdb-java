@@ -13,3 +13,11 @@ support/
 /ili2fgdb/src/ch/ehi/ili2fgdb/jdbc/parser/SqlLexer.smap
 /ili2fgdb/src/ch/ehi/ili2fgdb/jdbc/parser/SqlSyntax.smap
 /.gradle/
+
+# test artifacts of the shared ili2db test suite (written next to the test data)
+test/data/**/*.log
+test/data/**/*-out.xtf
+test/data/**/*-out.itf
+test/data/**/*.gdb/
+test/data/**/exportMetaConfig.ini
+test/data/**/Dataset 10a.itf

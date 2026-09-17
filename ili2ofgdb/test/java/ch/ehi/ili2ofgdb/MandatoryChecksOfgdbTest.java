@@ -29,7 +29,7 @@ import ch.ehi.ili2db.base.Ili2db;
 import ch.ehi.ili2db.gui.Config;
 
 public class MandatoryChecksOfgdbTest {
-    private static final String TEST_DATA_DIR = "test/data/MandatoryChecks";
+    private static final String TEST_DATA_DIR = "ili2ofgdb/test/data/mandatory";
     private static final String TEST_DB_DIR = "build/test-ofgdb";
 
     @Test

@@ -31,7 +31,7 @@ import ch.interlis.iox.StartTransferEvent;
 
 //-Ddburl=jdbc:postgresql:dbname -Ddbusr=usrname -Ddbpwd=1234
 public class Dataset23Smart1Test {
-    String fgdbFileName="test/data/Dataset23Smart1/Dataset23Smart1.gdb";
+    String fgdbFileName="build/test-ofgdb/Dataset23Smart1.gdb";
 	private static final String DATASETNAME_A = "Testset1";
 	private static final String DATASETNAME_B = "Testset2";
 	Connection jdbcConnection=null;

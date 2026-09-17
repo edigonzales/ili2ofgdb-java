@@ -24,6 +24,7 @@ fi
 paths=(
   src
   test/java
+  test/data
   ili2pg
   ili2gpkg
   ili2mysql

@@ -25,7 +25,6 @@ public abstract class UniqueIndex10Test {
 	@Test
 	public void importIli() throws Exception
 	{
-        org.junit.Assume.assumeTrue("backend does not support unique constraints", setup.supportsUniqueConstraints());
 		Connection jdbcConnection=null;
 		try{
             setup.resetDb();

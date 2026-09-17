@@ -34,23 +34,4 @@ public abstract class AbstractTestSetup {
         return true;
     }
 
-    /**
-     * Whether the backend can store more than one geometry column per table. Backends without this
-     * capability skip the corresponding contract tests explicitly instead of silently replacing
-     * them.
-     */
-    public boolean supportsMultipleGeometryColumns(){
-        return true;
-    }
-
-    /** Whether the backend enforces unique constraints (or unique indexes). */
-    public boolean supportsUniqueConstraints(){
-        return true;
-    }
-
-    /** Whether the backend can collect the DDL of a schema import as a script. */
-    public boolean supportsDdlScripts(){
-        return true;
-    }
-
 }

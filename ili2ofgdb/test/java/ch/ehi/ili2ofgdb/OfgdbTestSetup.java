@@ -27,24 +27,6 @@ public class OfgdbTestSetup extends ch.ehi.ili2db.AbstractTestSetup {
         config.setValue(GeneratorOfgdb.XY_RESOLUTION, "0.005");
         config.setValue(GeneratorOfgdb.XY_TOLERANCE, "0.05");
     }
-
-    @Override
-    public boolean supportsMultipleGeometryColumns() {
-        // OpenFileGDB allows only one geometry column per table
-        return false;
-    }
-
-    @Override
-    public boolean supportsUniqueConstraints() {
-        // the file geodatabase has no attribute indexes
-        return false;
-    }
-
-    @Override
-    public boolean supportsDdlScripts() {
-        // the driver executes DDL directly; there is no offline script collection
-        return false;
-    }
     
     @Override
     public Config initConfig(String xtfFilename,String logfile) {

@@ -17,15 +17,18 @@ public class OfgdbTestSetup extends ch.ehi.ili2db.AbstractTestSetup {
         super();
     }
 
-    protected OfgdbTestSetup(String fgdbFilename) {
+    public OfgdbTestSetup(String fgdbFilename) {
         super();
         this.fgdbFilename = fgdbFilename;
     }
 
     @Override
     public void setXYParams(Config config) {
-        config.setValue(GeneratorOfgdb.XY_RESOLUTION, "0.005");
-        config.setValue(GeneratorOfgdb.XY_TOLERANCE, "0.05");
+        // The geometries of the shared test models carry 1 mm coordinates; a coarser grid would
+        // distort them (and break the topology checks of the surface export test). The effect of
+        // coarse --fgdbXyResolution/--fgdbXyTolerance values is covered by OfgdbXyPrecisionTest.
+        config.setValue(GeneratorOfgdb.XY_RESOLUTION, "0.001");
+        config.setValue(GeneratorOfgdb.XY_TOLERANCE, "0.01");
     }
     
     @Override

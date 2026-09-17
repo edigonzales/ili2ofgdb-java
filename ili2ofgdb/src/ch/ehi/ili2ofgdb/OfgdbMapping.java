@@ -59,7 +59,8 @@ import ch.interlis.iom_j.itf.ModelUtilities;
  *   <li>Domain definitions are collected while the schema is mapped and created through the JDBC
  *       connection when the mapping phase ends - before the DDL generator creates the tables. The
  *       column carries the domain name as custom value, so the DDL generator can emit a
- *       {@code DOMAIN} clause.
+ *       {@code DOMAIN} clause. The definitions are also handed to the DDL generator (transient
+ *       config value), so that an offline DDL script can create them without model knowledge.
  *   <li>Relationship classes are reconstructed after the schema import from the persisted mapping
  *       tables ({@code T_ILI2DB_ATTRNAME} and {@code T_ILI2DB_TRAFO}) and the compiled INTERLIS
  *       model. This avoids any change to the ili2db core.
@@ -77,6 +78,11 @@ public class OfgdbMapping extends AbstractJdbcMapping {
             "ch.ehi.ili2ofgdb.fgdbCreateRelationshipClasses";
     /** Custom value key that carries the domain name from the mapping to the DDL generator. */
     public static final String DOMAIN_CUSTOM_KEY = "ch.ehi.ili2ofgdb.domain";
+    /**
+     * Transient config key that carries the {@code CREATE DOMAIN} statements from the mapping to the
+     * DDL generator, so that an offline DDL script is self-contained.
+     */
+    public static final String DOMAIN_DDL_CUSTOM_KEY = "ch.ehi.ili2ofgdb.domainDdl";
     /** Custom value key that marks a geometry column for a native spatial index. */
     public static final String GEOM_INDEX_CUSTOM_KEY = "ch.ehi.ili2ofgdb.geomIndex";
 
@@ -122,7 +128,18 @@ public class OfgdbMapping extends AbstractJdbcMapping {
 
     @Override
     public void fromIliEnd(Config config) {
-        if (connection == null || !createDomains || domains.isEmpty()) {
+        if (!createDomains || domains.isEmpty()) {
+            return;
+        }
+        // A script-only run has no database connection and an offline DDL script is executed on an
+        // empty database without any model knowledge. Hand the domain definitions to the DDL
+        // generator, which emits CREATE DOMAIN statements before the tables.
+        List<String> domainDdl = new ArrayList<String>();
+        for (DomainDefinition domain : domains.values()) {
+            domainDdl.add(toCreateDomainSql(domain));
+        }
+        config.setTransientObject(DOMAIN_DDL_CUSTOM_KEY, domainDdl);
+        if (connection == null) {
             return;
         }
         try {
@@ -130,6 +147,38 @@ public class OfgdbMapping extends AbstractJdbcMapping {
         } catch (SQLException ex) {
             throw new IllegalStateException("ili2ofgdb: failed to create domains", ex);
         }
+    }
+
+    /** Formats a domain as {@code CREATE DOMAIN} statement of the offline DDL script. */
+    static String toCreateDomainSql(DomainDefinition domain) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("CREATE DOMAIN ").append(domain.domainName).append(" AS ").append(domain.fieldType);
+        if (domain.kind == DomainKind.RANGE) {
+            sql.append(" RANGE ").append(domain.rangeMinInclusive ? "[" : "(");
+            if (domain.rangeMinValue != null) {
+                sql.append(domain.rangeMinValue);
+            }
+            sql.append(" .. ");
+            if (domain.rangeMaxValue != null) {
+                sql.append(domain.rangeMaxValue);
+            }
+            sql.append(domain.rangeMaxInclusive ? "]" : ")");
+            return sql.toString();
+        }
+        sql.append(" VALUES (");
+        String separator = "";
+        for (Map.Entry<String, String> entry : domain.codedValues.entrySet()) {
+            sql.append(separator)
+                    .append(toSqlString(entry.getKey()))
+                    .append("=")
+                    .append(toSqlString(entry.getValue()));
+            separator = ",";
+        }
+        return sql.append(")").toString();
+    }
+
+    private static String toSqlString(String value) {
+        return "'" + value.replace("'", "''") + "'";
     }
 
     @Override

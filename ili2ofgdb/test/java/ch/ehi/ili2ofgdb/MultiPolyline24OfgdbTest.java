@@ -113,8 +113,9 @@ public class MultiPolyline24OfgdbTest extends ch.ehi.ili2db.MultiPolyline24Test 
                     continue;
                 }
                 Coordinate coord = actual[i];
-                if (Math.abs(coord.x - expectedCoord[0]) <= EPS
-                        && Math.abs(coord.y - expectedCoord[1]) <= EPS
+                // X/Y are stored on the 1 mm grid configured by OfgdbTestSetup.setXYParams
+                if (Math.abs(coord.x - OfgdbTestGrid.x(expectedCoord[0])) <= EPS
+                        && Math.abs(coord.y - OfgdbTestGrid.y(expectedCoord[1])) <= EPS
                         && Math.abs(coord.z - expectedCoord[2]) <= EPS) {
                     matched = i;
                     break;

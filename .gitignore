@@ -18,9 +18,11 @@ support/
 test/data/**/*.log
 test/data/**/*-out.xtf
 test/data/**/*-out.itf
+test/data/**/*-out.sql
 test/data/**/*.gdb/
 test/data/**/exportMetaConfig.ini
 test/data/**/Dataset 10a.itf
 
 # test artifacts of the flavor test data
 ili2ofgdb/test/data/**/*.log
+ili2ofgdb/test/data/**/*-out.sql

@@ -145,10 +145,11 @@ public class MultiSurfaceArea24OfgdbTest extends ch.ehi.ili2db.MultiSurfaceArea2
                     continue;
                 }
                 Envelope env = actual.get(i);
-                if (Math.abs(env.getMinX() - expectedEnv[0]) <= EPS
-                        && Math.abs(env.getMaxX() - expectedEnv[1]) <= EPS
-                        && Math.abs(env.getMinY() - expectedEnv[2]) <= EPS
-                        && Math.abs(env.getMaxY() - expectedEnv[3]) <= EPS) {
+                // X/Y are stored on the 1 mm grid configured by OfgdbTestSetup.setXYParams
+                if (Math.abs(env.getMinX() - OfgdbTestGrid.x(expectedEnv[0])) <= EPS
+                        && Math.abs(env.getMaxX() - OfgdbTestGrid.x(expectedEnv[1])) <= EPS
+                        && Math.abs(env.getMinY() - OfgdbTestGrid.y(expectedEnv[2])) <= EPS
+                        && Math.abs(env.getMaxY() - OfgdbTestGrid.y(expectedEnv[3])) <= EPS) {
                     matched = i;
                     break;
                 }

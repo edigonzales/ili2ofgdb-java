@@ -13,6 +13,8 @@ See the [repository README](../README.md) for the architecture and the build/tes
 | CRS | WKID plus WKT (bundled resource, extensible with `--fgdbWktDir <dir>` containing `<epsg>.wkt`) |
 | Spatial index | `--createGeomIdx` builds the native `.spx` index (kept on append) |
 | Domains | coded domains (enums, booleans) and range domains (`--createNumChecks`); `--fgdbCreateDomains` |
+| DDL script | `--createScript` writes a self-contained script (domains included) for an empty geodatabase |
+| XY precision | `--fgdbXyResolution`/`--fgdbXyTolerance` define the storage grid of the geometry columns |
 | Relationship classes | 1:1, 1:n and n:m; n:m uses the association table of ili2db as mapping table and keeps the attributes (`IsAttributed`) |
 | Geometry | one geometry column per table; WKB at the JDBC boundary, native curves (circular arcs) in the geodatabase |
 | Transactions | snapshot based rollback, one shared writable session per `.gdb` |
@@ -24,14 +26,15 @@ Flavour specific switches:
 * `--fgdbCreateRelationshipClasses[=true|false]` (default true)
 * `--fgdbIncludeInactiveEnumValues[=true|false]` (default false)
 * `--fgdbWktDir <dir>` – WKT files for CRS codes that are not bundled
-* `--fgdbXyResolution <value>`, `--fgdbXyTolerance <value>` (informational; the fixed precision of
-  the flavour is fine grained)
+* `--fgdbXyResolution <value>`, `--fgdbXyTolerance <value>` – storage grid of the geometry columns
+  (default `0.000001`/`0.00001`). If only one value is given, the other is derived with a ratio of
+  10; the tolerance is raised to at least twice the resolution. Very fine resolutions shift the XY
+  origin, so that the grid range of the file geodatabase (9e15 grid units) is not exhausted.
 
 ## Known limitations
 
 * Attribute indexes / unique constraints are not supported by the file geodatabase; the
   corresponding contract tests are skipped with a reason.
-* The flavour executes DDL directly; there is no offline DDL script collection.
 * Multiple geometry columns per table are not possible; the one-geometry contract tests
   (`*OneGeom`) are the ones the flavour implements.
 * Relationship classes are created during the schema import (fresh geodatabase). When editing an
@@ -41,9 +44,12 @@ Flavour specific switches:
 ## Tests
 
 * `ili2ofgdb/test/java` – the FGDB contract tests (subclasses of the shared abstract tests) and the
-  FGDB specific tests (mapping, JDBC, geometry, interop).
+  FGDB specific tests (mapping, JDBC, domain scripts, XY precision, geometry, interop).
 * `ili2ofgdb/test/data` – flavour specific test data (relationship/range mapping model, mandatory
   checks model, smoke data).
+
+11 shared contract tests are skipped with a reason (9 multiple geometry columns, 2 attribute
+indexes); all other contract tests run, including the offline DDL script tests.
 
 ```bash
 ./gradlew ili2ofgdbTest -PgdalPrefix=/opt/miniconda3/envs/gdal

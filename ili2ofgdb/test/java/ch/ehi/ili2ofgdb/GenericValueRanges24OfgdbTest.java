@@ -206,10 +206,11 @@ public class GenericValueRanges24OfgdbTest extends ch.ehi.ili2db.GenericValueRan
             double maxX,
             double minY,
             double maxY) {
-        assertEquals(minX, envelope.getMinX(), EPS);
-        assertEquals(maxX, envelope.getMaxX(), EPS);
-        assertEquals(minY, envelope.getMinY(), EPS);
-        assertEquals(maxY, envelope.getMaxY(), EPS);
+        // X/Y are stored on the 1 mm grid configured by OfgdbTestSetup.setXYParams
+        assertEquals(OfgdbTestGrid.x(minX), envelope.getMinX(), EPS);
+        assertEquals(OfgdbTestGrid.x(maxX), envelope.getMaxX(), EPS);
+        assertEquals(OfgdbTestGrid.y(minY), envelope.getMinY(), EPS);
+        assertEquals(OfgdbTestGrid.y(maxY), envelope.getMaxY(), EPS);
     }
 
     private static void assertCoords(Coordinate[] actual, double[][] expected) {
@@ -222,7 +223,9 @@ public class GenericValueRanges24OfgdbTest extends ch.ehi.ili2db.GenericValueRan
                     continue;
                 }
                 Coordinate coord = actual[i];
-                if (Math.abs(coord.x - expectedCoord[0]) <= EPS && Math.abs(coord.y - expectedCoord[1]) <= EPS) {
+                // X/Y are stored on the 1 mm grid configured by OfgdbTestSetup.setXYParams
+                if (Math.abs(coord.x - OfgdbTestGrid.x(expectedCoord[0])) <= EPS
+                        && Math.abs(coord.y - OfgdbTestGrid.y(expectedCoord[1])) <= EPS) {
                     matched = i;
                     break;
                 }

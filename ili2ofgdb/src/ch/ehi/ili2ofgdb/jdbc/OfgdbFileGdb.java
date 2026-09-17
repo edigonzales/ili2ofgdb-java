@@ -12,8 +12,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
+import ch.ehi.basics.logging.EhiLogger;
 import ch.ehi.ili2db.base.DbNames;
 import ch.ehi.ili2ofgdb.jdbc.OfgdbSql.ColumnSpec;
+import ch.ehi.ili2ofgdb.jdbc.OfgdbSql.CreateDomainSpec;
 import ch.ehi.ili2ofgdb.jdbc.OfgdbSql.CreateTableSpec;
 import ch.ehi.ili2ofgdb.jdbc.OfgdbSql.DeleteSpec;
 import ch.ehi.ili2ofgdb.jdbc.OfgdbSql.InsertSpec;
@@ -77,6 +79,66 @@ public final class OfgdbFileGdb implements AutoCloseable {
                     -2147483647, -2147483647, 1000000, 0.00001,
                     -100000, 10000, 0.001,
                     -100000, 10000, 0.001);
+
+    /**
+     * Builds the XY precision of a geometry field from {@code --fgdbXyResolution} and {@code
+     * --fgdbXyTolerance}. If only one value is given, the other one is derived (ratio 1:10). The
+     * origin is adapted when the requested resolution is too fine for the default origin, because
+     * the file geodatabase stores coordinates as grid offsets of at most 9e15.
+     */
+    static ch.so.agi.filegdb.geometry.CoordinatePrecision xyPrecision(String resolutionText,
+            String toleranceText) {
+        Double resolution = parsePositiveDouble(resolutionText);
+        Double tolerance = parsePositiveDouble(toleranceText);
+        if (resolution == null && tolerance == null) {
+            return OFGDB_PRECISION;
+        }
+        if (resolution == null) {
+            resolution = Double.valueOf(tolerance.doubleValue() / 10.0);
+            EhiLogger.logAdaption("ili2ofgdb: --fgdbXyResolution not given; derived <" + resolution
+                    + "> from --fgdbXyTolerance");
+        } else if (tolerance == null) {
+            tolerance = Double.valueOf(resolution.doubleValue() * 10.0);
+            EhiLogger.logAdaption("ili2ofgdb: --fgdbXyTolerance not given; derived <" + tolerance
+                    + "> from --fgdbXyResolution");
+        }
+        double minTolerance = 2.0 * resolution.doubleValue();
+        if (tolerance.doubleValue() < minTolerance) {
+            EhiLogger.logAdaption("ili2ofgdb: --fgdbXyTolerance <" + toleranceText
+                    + "> is smaller than twice --fgdbXyResolution <" + resolutionText
+                    + ">; using <" + minTolerance + ">");
+            tolerance = Double.valueOf(minTolerance);
+        }
+        double scale = 1.0 / resolution.doubleValue();
+        double originX = OFGDB_PRECISION.xOrigin();
+        double originY = OFGDB_PRECISION.yOrigin();
+        double gridWindow = 9e15 / scale;
+        if (gridWindow + originX <= 0) {
+            originX = -gridWindow / 2.0;
+            originY = originX;
+            EhiLogger.logAdaption("ili2ofgdb: --fgdbXyResolution <" + resolutionText
+                    + "> is too fine for the default origin; using XY origin <" + originX + ">");
+        }
+        return OFGDB_PRECISION.withXY(resolution.doubleValue(), tolerance.doubleValue(), originX,
+                originY);
+    }
+
+    private static Double parsePositiveDouble(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            double value = Double.parseDouble(text.trim());
+            if (!(value > 0) || !Double.isFinite(value)) {
+                EhiLogger.logAdaption("ili2ofgdb: ignoring invalid precision value <" + text + ">");
+                return null;
+            }
+            return Double.valueOf(value);
+        } catch (NumberFormatException e) {
+            EhiLogger.logAdaption("ili2ofgdb: ignoring invalid precision value <" + text + ">");
+            return null;
+        }
+    }
 
     private final Path directory;
     private final Map<String, String> knownTables = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
@@ -348,6 +410,10 @@ public final class OfgdbFileGdb implements AutoCloseable {
             createTable(OfgdbSql.parseCreateTable(statement));
             return 0;
         }
+        if (OfgdbSql.startsWithKeyword(statement, "CREATE DOMAIN")) {
+            createDomain(OfgdbSql.parseCreateDomain(statement));
+            return 0;
+        }
         if (OfgdbSql.startsWithKeyword(statement, "INSERT")) {
             insert(OfgdbSql.parseInsert(statement));
             return 0;
@@ -378,7 +444,7 @@ public final class OfgdbFileGdb implements AutoCloseable {
                 GeometryFieldDefinition definition =
                         GeometryFieldDefinition.of(column.name, kind)
                                 .withNullable(!column.notNull)
-                                .withPrecision(OFGDB_PRECISION);
+                                .withPrecision(xyPrecision(column.xyResolution, column.xyTolerance));
                 if (column.dimension == 3) {
                     definition = definition.withZ();
                 }
@@ -848,22 +914,32 @@ public final class OfgdbFileGdb implements AutoCloseable {
     // Domains
     // ------------------------------------------------------------------
 
-    public synchronized List<String> listDomains() throws SQLException {
-        try {
-            List<String> names = new ArrayList<String>();
-            for (ch.so.agi.filegdb.catalog.Domain domain : database.domains()) {
-                names.add(domain.name());
-            }
-            return names;
-        } catch (RuntimeException e) {
-            throw new SQLException("failed to list domains", e);
+    private void createDomain(CreateDomainSpec spec) throws SQLException {
+        if (spec.codedValues != null) {
+            createCodedDomain(spec.domainName, spec.fieldType, spec.codedValues);
+            return;
         }
+        if (spec.range) {
+            createRangeDomain(spec.domainName, spec.fieldType, spec.rangeMinValue,
+                    spec.rangeMinInclusive, spec.rangeMaxValue, spec.rangeMaxInclusive);
+            return;
+        }
+        throw new SQLException(
+                "unsupported CREATE DOMAIN statement (missing VALUES or RANGE): " + spec.domainName);
+    }
+
+    public synchronized List<String> listDomains() throws SQLException {
+        List<String> names = new ArrayList<String>();
+        for (ch.so.agi.filegdb.catalog.Domain domain : catalog().domains()) {
+            names.add(domain.name());
+        }
+        return names;
     }
 
     public synchronized void createCodedDomain(String name, String fieldType,
             Map<String, String> codedValues) throws SQLException {
         try {
-            if (database.domain(name).isPresent()) {
+            if (domainExists(name)) {
                 return;
             }
             List<CodedValue> values = new ArrayList<CodedValue>();
@@ -880,7 +956,7 @@ public final class OfgdbFileGdb implements AutoCloseable {
     public synchronized void createRangeDomain(String name, String fieldType, String minValue,
             boolean minInclusive, String maxValue, boolean maxInclusive) throws SQLException {
         try {
-            if (database.domain(name).isPresent()) {
+            if (domainExists(name)) {
                 return;
             }
             String min = minValue == null ? null : (minInclusive ? minValue : "(" + minValue);
@@ -890,6 +966,20 @@ public final class OfgdbFileGdb implements AutoCloseable {
         } catch (IOException | RuntimeException e) {
             throw new SQLException("failed to create range domain " + name, e);
         }
+    }
+
+    /**
+     * Checks whether a domain already exists. The catalog snapshot of the underlying {@link
+     * FileGeodatabase} is not updated by domain creation, therefore the catalog has to be read from
+     * the directory.
+     */
+    private boolean domainExists(String name) throws SQLException {
+        for (String existing : listDomains()) {
+            if (existing.equalsIgnoreCase(name)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static FileGdbFieldType toFieldType(String fieldType) {

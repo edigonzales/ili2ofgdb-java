@@ -34,18 +34,18 @@ The flavor keeps the ili2db mapping architecture and the JDBC interface, and rep
   the JDBC shim. One refcounted session per `.gdb` file is shared by all connections.
 * `ch.ehi.ili2ofgdb.jdbc.OfgdbFileGdb` - the storage engine: tables, rows, DDL/DML, domains and
   relationship classes on top of filegdb4j.
-* `ch.ehi.ili2ofgdb.jdbc.OfgdbSql` - the small SQL dialect of ili2db: `CREATE TABLE`, `INSERT`,
-  `UPDATE`, `DELETE` and WHERE evaluation.
+* `ch.ehi.ili2ofgdb.jdbc.OfgdbSql` - the small SQL dialect of ili2db: `CREATE TABLE`, `CREATE
+  DOMAIN`, `INSERT`, `UPDATE`, `DELETE` and WHERE evaluation.
 * `ch.ehi.ili2ofgdb.jdbc.OfgdbGeometryBridge` / `OfgdbIomGeometry` - WKB (the contract of the JDBC
   layer) to the native filegdb4j geometry model, including circular arcs.
 * `ch.ehi.ili2ofgdb.OfgdbMapping` - domains and relationship classes, implemented through the
   public custom mapping hooks only; the ili2db core stays untouched.
 
-Genuine backend differences are documented as capability flags in the shared test base
-(`AbstractTestSetup#supportsMultipleGeometryColumns`, `#supportsUniqueConstraints`,
-`#supportsDdlScripts`): the file geodatabase stores one geometry column per table, has no attribute
-indexes and cannot collect offline DDL scripts. The corresponding contract tests skip themselves
-with a reason instead of being silently replaced.
+Genuine backend differences are expressed as explicit `@Ignore` overrides with a documented reason in
+the flavor test classes, so the shared test suite runs with 11 documented skips instead of silently
+replaced tests: the file geodatabase stores one geometry column per table (9 tests) and has no
+attribute indexes/unique constraints (2 tests). Everything else, including the offline DDL scripts,
+works.
 
 ## Features
 
@@ -58,6 +58,10 @@ with a reason instead of being silently replaced.
 * **Relationship classes**: 1:1, 1:n and n:m relationships are written as relationship classes;
   n:m relationships are bound to the association table created by ili2db and keep their attribute
   columns (`IsAttributed`).
+* **XY precision**: `--fgdbXyResolution`/`--fgdbXyTolerance` define the storage grid and tolerance of
+  the geometry columns (default 1 µm/10 µm).
+* **Offline DDL scripts**: `--createScript` writes a self-contained script (including
+  `CREATE DOMAIN`) that can be replayed on an empty geodatabase.
 
 ## Build
 
@@ -90,8 +94,9 @@ The imported ili2db core is protected against accidental changes:
 ./gradlew verifyUpstreamCoreUnmodified
 ```
 
-Intentional divergences (test capability flags) are listed in
-[tools/upstream-drift-allowlist.txt](tools/upstream-drift-allowlist.txt).
+Intentional divergences are listed in [tools/upstream-drift-allowlist.txt](tools/upstream-drift-allowlist.txt);
+the list is currently empty, because the ili2db core, the shared tests and the shared test data are
+imported unmodified.
 
 ## License
 

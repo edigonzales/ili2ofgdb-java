@@ -1,16 +1,15 @@
 package ch.ehi.sqlgen.generator_impl.ofgdb;
 
 import java.io.IOException;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
 
 import ch.ehi.basics.logging.EhiLogger;
 import ch.ehi.basics.settings.Settings;
-import ch.ehi.sqlgen.generator.Generator;
-import ch.ehi.sqlgen.generator.SqlConfiguration;
+import ch.ehi.ili2ofgdb.OfgdbMapping;
+import ch.ehi.sqlgen.generator_impl.jdbc.GeneratorJdbc;
+import ch.ehi.sqlgen.generator_impl.jdbc.GeneratorJdbc.Stmt;
 import ch.ehi.sqlgen.repository.DbColBlob;
 import ch.ehi.sqlgen.repository.DbColBoolean;
 import ch.ehi.sqlgen.repository.DbColDate;
@@ -30,35 +29,47 @@ import ch.ehi.sqlgen.repository.DbIndex;
 import ch.ehi.sqlgen.repository.DbSchema;
 import ch.ehi.sqlgen.repository.DbTable;
 
-public class GeneratorOfgdb implements Generator {
+/**
+ * DDL generator of the ili2ofgdb flavour.
+ *
+ * <p>Extends {@link GeneratorJdbc} so that the offline script mode of ili2db works: the collected
+ * statements ({@code iteratorCreateLines()}) are written to the script file by the core, while the
+ * JDBC shim executes them in normal runs.
+ */
+public class GeneratorOfgdb extends GeneratorJdbc {
     public static final String OBJECTOID = "OBJECTID";
     public static final String XY_RESOLUTION = "ch.ehi.ilifgdb.xyResolution";
     public static final String XY_TOLERANCE = "ch.ehi.ilifgdb.xyTolerance";
 
-    private Connection conn;
-    private Statement ddlStmt;
-    private DbTable currentTable;
-    private List<String> columnDefs;
     private int geometryColumnCount;
 
     @Override
-    public void visit1Begin() throws IOException {
-    }
-
-    @Override
-    public void visit1End() throws IOException {
+    public void visitSchemaBegin(Settings config, DbSchema schema) throws IOException {
+        super.visitSchemaBegin(config, schema);
+        // domains are created by the mapping when a database is available; the offline DDL script
+        // needs them as statements, so that it can be executed on an empty database
+        Object stashed = config.getTransientObject(OfgdbMapping.DOMAIN_DDL_CUSTOM_KEY);
+        if (!(stashed instanceof List)) {
+            return;
+        }
+        for (Object element : (List<?>) stashed) {
+            String stmt = String.valueOf(element);
+            addCreateLine(new Stmt(stmt));
+            if (conn != null) {
+                executeSql(stmt);
+            }
+        }
     }
 
     @Override
     public void visit1TableBegin(DbTable tab) throws IOException {
-        currentTable = tab;
-        columnDefs = new ArrayList<String>();
+        super.visit1TableBegin(tab);
         geometryColumnCount = 0;
     }
 
     @Override
     public void visit1TableEnd(DbTable tab) throws IOException {
-        if (tab == null || columnDefs == null) {
+        if (tab == null) {
             return;
         }
         if (geometryColumnCount > 1) {
@@ -67,43 +78,15 @@ public class GeneratorOfgdb implements Generator {
                     + " has " + geometryColumnCount
                     + " geometry columns (enable oneGeomPerTable for OFGDB)");
         }
-        StringBuilder sql = new StringBuilder();
-        sql.append("CREATE TABLE ").append(tab.getName().getName()).append(" (");
-        String sep = "";
-        for (String colDef : columnDefs) {
-            sql.append(sep).append(colDef);
-            sep = ", ";
-        }
-        sql.append(")");
-        execSql(sql.toString(), true);
-
-        if (tab.isDeleteDataIfTableExists()) {
-            execSql("DELETE FROM " + tab.getName().getName(), false);
-        }
-        currentTable = null;
-        columnDefs = null;
+        // the base class records the DDL (script mode), executes it for new tables and deletes the
+        // rows of existing tables when requested
+        super.visit1TableEnd(tab);
         geometryColumnCount = 0;
     }
 
     @Override
-    public void visit2Begin() throws IOException {
-    }
-
-    @Override
-    public void visit2End() throws IOException {
-    }
-
-    @Override
-    public void visit2TableBegin(DbTable arg0) throws IOException {
-    }
-
-    @Override
-    public void visit2TableEnd(DbTable arg0) throws IOException {
-    }
-
-    @Override
     public void visitColumn(DbTable tab, DbColumn column) throws IOException {
-        if (columnDefs == null || column == null) {
+        if (tab == null || column == null) {
             return;
         }
         if (column instanceof DbColGeometry) {
@@ -111,102 +94,91 @@ public class GeneratorOfgdb implements Generator {
         }
 
         StringBuilder def = new StringBuilder();
-        def.append(column.getName()).append(" ").append(toSqlType(column));
+        def.append(getIndent()).append(colSep).append(column.getName()).append(" ")
+                .append(toSqlType(column));
         Object domain = column.getCustomValue(ch.ehi.ili2ofgdb.OfgdbMapping.DOMAIN_CUSTOM_KEY);
         if (domain != null) {
-            def.append(" DOMAIN ").append(domain.toString());
+            def.append(" DOMAIN ").append(domain);
         }
-
         if (column instanceof DbColId && ((DbColId) column).isPrimaryKey()) {
             def.append(" PRIMARY KEY");
-        }
-        if (column.isNotNull()) {
+        } else if (column.isNotNull()) {
             def.append(" NOT NULL");
         }
-        columnDefs.add(def.toString());
+        def.append(newline());
+        out.write(def.toString());
+        colSep = ",";
     }
 
     @Override
-    public void visitConstraint(DbConstraint arg0) throws IOException {
+    protected String getTableEndOptions(DbTable tab) {
+        return "";
     }
 
     @Override
-    public void visitEnumEle(DbEnumEle arg0) throws IOException {
+    public void visitIndex(DbIndex index) throws IOException {
+        // FileGDB has no attribute indexes
     }
 
     @Override
-    public void visitIndex(DbIndex arg0) throws IOException {
+    public void visitConstraint(DbConstraint constraint) throws IOException {
+        // FileGDB has no CHECK constraints
     }
 
     @Override
-    public void visitSchemaBegin(Settings config, DbSchema arg1) throws IOException {
-        conn = (Connection) config.getTransientObject(SqlConfiguration.JDBC_CONNECTION);
+    public void visitEnumEle(DbEnumEle element) throws IOException {
+    }
+
+    @Override
+    public void visitTableBeginColumn(DbTable tab) throws IOException {
+    }
+
+    @Override
+    public void visitTableEndColumn(DbTable tab) throws IOException {
+    }
+
+    @Override
+    public void visitTableBeginConstraint(DbTable tab) throws IOException {
+    }
+
+    @Override
+    public void visitTableEndConstraint(DbTable tab) throws IOException {
+    }
+
+    @Override
+    public void visitTableBeginIndex(DbTable tab) throws IOException {
+    }
+
+    @Override
+    public void visitTableEndIndex(DbTable tab) throws IOException {
+    }
+
+    @Override
+    public void visitTableBeginEnumEle(DbTable tab) throws IOException {
+    }
+
+    @Override
+    public void visitTableEndEnumEle(DbTable tab) throws IOException {
+    }
+
+    private void executeSql(String sql) throws IOException {
         if (conn == null) {
-            throw new IllegalArgumentException("config.getConnection()==null");
+            throw new IOException("no JDBC connection for <" + sql + ">");
         }
+        EhiLogger.traceBackendCmd(sql);
+        Statement stmt = null;
         try {
-            ddlStmt = conn.createStatement();
-        } catch (SQLException e) {
-            throw new IOException("failed to initialize DDL statement", e);
-        }
-    }
-
-    @Override
-    public void visitSchemaEnd(DbSchema arg0) throws IOException {
-        if (ddlStmt != null) {
-            try {
-                ddlStmt.close();
-            } catch (SQLException e) {
-                throw new IOException("failed to close DDL statement", e);
-            } finally {
-                ddlStmt = null;
+            stmt = conn.createStatement();
+            stmt.executeUpdate(sql);
+        } catch (SQLException ex) {
+            throw new IOException("failed to execute DDL statement <" + sql + ">", ex);
+        } finally {
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException ignore) {
+                }
             }
-        }
-    }
-
-    @Override
-    public void visitTableBeginColumn(DbTable arg0) throws IOException {
-    }
-
-    @Override
-    public void visitTableBeginConstraint(DbTable arg0) throws IOException {
-    }
-
-    @Override
-    public void visitTableBeginEnumEle(DbTable arg0) throws IOException {
-    }
-
-    @Override
-    public void visitTableBeginIndex(DbTable arg0) throws IOException {
-    }
-
-    @Override
-    public void visitTableEndColumn(DbTable arg0) throws IOException {
-    }
-
-    @Override
-    public void visitTableEndConstraint(DbTable arg0) throws IOException {
-    }
-
-    @Override
-    public void visitTableEndEnumEle(DbTable arg0) throws IOException {
-    }
-
-    @Override
-    public void visitTableEndIndex(DbTable arg0) throws IOException {
-    }
-
-    public static Integer getSrsId(String srsAuth, String srsId) {
-        if (srsAuth == null || srsId == null) {
-            return null;
-        }
-        if (!"EPSG".equalsIgnoreCase(srsAuth)) {
-            return null;
-        }
-        try {
-            return Integer.valueOf(srsId);
-        } catch (NumberFormatException e) {
-            return null;
         }
     }
 
@@ -302,42 +274,40 @@ public class GeneratorOfgdb implements Generator {
         if (dim != 3) {
             dim = 2;
         }
-        String spatialIndex = "";
-        Object geomIndex = column.getCustomValue(ch.ehi.ili2ofgdb.OfgdbMapping.GEOM_INDEX_CUSTOM_KEY);
+        StringBuilder sqlType = new StringBuilder("OFGDB_GEOMETRY(");
+        sqlType.append(kind).append(",").append(epsg).append(",").append(dim);
+        Object geomIndex = column.getCustomValue(OfgdbMapping.GEOM_INDEX_CUSTOM_KEY);
         if (geomIndex != null && "true".equalsIgnoreCase(geomIndex.toString())) {
-            spatialIndex = ",INDEX";
+            sqlType.append(",INDEX");
         }
-        return "OFGDB_GEOMETRY(" + kind + "," + epsg + "," + dim + spatialIndex + ")";
+        String xyResolution = text(column.getCustomValue(XY_RESOLUTION));
+        String xyTolerance = text(column.getCustomValue(XY_TOLERANCE));
+        if (xyResolution != null || xyTolerance != null) {
+            sqlType.append(",").append(xyResolution == null ? "" : xyResolution)
+                    .append(",").append(xyTolerance == null ? "" : xyTolerance);
+        }
+        return sqlType.append(")").toString();
     }
 
-    private void execSql(String sql, boolean ignoreIfExists) throws IOException {
-        if (ddlStmt == null) {
-            throw new IOException("DDL statement is not initialized");
+    private static String text(Object value) {
+        if (value == null) {
+            return null;
         }
-        EhiLogger.traceBackendCmd(sql);
+        String text = value.toString().trim();
+        return text.isEmpty() ? null : text;
+    }
+
+    public static Integer getSrsId(String srsAuth, String srsId) {
+        if (srsAuth == null || srsId == null) {
+            return null;
+        }
+        if (!"EPSG".equalsIgnoreCase(srsAuth)) {
+            return null;
+        }
         try {
-            ddlStmt.executeUpdate(sql);
-        } catch (SQLException e) {
-            if (ignoreIfExists && isAlreadyExistsError(e)) {
-                EhiLogger.logAdaption("ili2ofgdb: ignored DDL error for statement <" + sql + ">: " + e.getMessage());
-                return;
-            }
-            throw new IOException("failed to execute DDL statement <" + sql + ">", e);
+            return Integer.valueOf(srsId);
+        } catch (NumberFormatException e) {
+            return null;
         }
-    }
-
-    private boolean isAlreadyExistsError(SQLException e) {
-        String sqlState = e.getSQLState();
-        if ("X0Y32".equals(sqlState)) {
-            return true;
-        }
-        String msg = e.getMessage();
-        if (msg == null) {
-            return false;
-        }
-        String lower = msg.toLowerCase(java.util.Locale.ROOT);
-        return lower.contains("already exists")
-                || lower.contains("exists already")
-                || lower.contains("already present");
     }
 }

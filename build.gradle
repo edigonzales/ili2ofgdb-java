@@ -1,0 +1,1033 @@
+group 'ch.interlis'
+version '5.5.3'+System.getProperty('release','-SNAPSHOT')
+
+apply plugin: "java"
+apply plugin: "maven"
+
+//plugins {
+//    id 'java-library'
+//    id 'maven-publish'
+//}
+
+
+if(!JavaVersion.current().isJava8()){
+  compileJava.options.compilerArgs.addAll(['--release', '8'])
+}else{
+  sourceCompatibility = JavaVersion.VERSION_1_8 
+  targetCompatibility = JavaVersion.VERSION_1_8
+}
+compileJava.options.encoding = 'US-ASCII'
+
+
+// to get the latest SNAPSHOT uncomment the following lines
+//configurations.all {
+    // check for updates every build
+    //resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+//}
+
+
+repositories {
+    mavenLocal()
+    maven {
+        url "http://jars.interlis.ch"
+    }
+    mavenCentral()
+}
+
+Properties properties = new Properties()
+File propFile=project.rootProject.file('user.properties')
+if(propFile.exists()){
+	properties.load(propFile.newDataInputStream())
+}
+def git = System.getProperty('git',properties.get('git','git'))
+def repos_url = System.getProperty('repos_url',properties.get('repos_url','repos_url'))
+def repos_pwd = System.getProperty('repos_pwd',properties.get('repos_pwd','repos_pwd'))
+def repos_usr = System.getProperty('repos_usr',properties.get('repos_usr','repos_usr'))
+ext {
+	downloads_pwd = System.getProperty('downloads_pwd',properties.get('downloads_pwd','downloads_pwd'))
+	downloads_usr = System.getProperty('downloads_usr',properties.get('downloads_usr','downloads_usr'))
+}
+def dburl = System.getProperty('dburl',properties.get('dburl'))
+def dbusr = System.getProperty('dbusr',properties.get('dbusr'))
+def dbpwd = System.getProperty('dbpwd',properties.get('dbpwd'))
+def myurl = System.getProperty('myurl',properties.get('myurl'))
+def myusr = System.getProperty('myusr',properties.get('myusr'))
+def mypwd = System.getProperty('mypwd',properties.get('mypwd'))
+def rst2html= System.getProperty('rst2html',properties.get('rst2html','rst2html'))
+def docs_pwd = System.getProperty('docs_pwd',properties.get('docs_pwd','docs_pwd'))
+def docs_usr = System.getProperty('docs_usr',properties.get('docs_usr','docs_usr'))
+    
+def generatedResources = "$buildDir/generated-resources/main"
+
+def getGitHash = { ->
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine git, 'rev-parse', 'HEAD'
+        standardOutput = stdout
+    }
+    return stdout.toString().trim()
+}
+
+sourceSets {
+  main {
+    //let's register an output folder on the main SourceSet:
+    //it is now a part of the 'main' classpath and will be a part of the jar
+    output.dir(generatedResources, builtBy: 'generateMyResources')
+    java {
+    	srcDirs=['src','gui/src'] // 'gui-noop/src'
+    }
+    resources {
+    	srcDirs=['resources']
+    }
+  }
+  test {
+  	  java {
+  	  	  srcDirs=['test/java']
+  	  }
+  }
+  ili2pg {
+    java {
+    	srcDirs=['ili2pg/src']
+    }
+    compileClasspath += sourceSets.main.output
+  }
+  ili2pgTest {
+    java {
+    	srcDirs=['ili2pg/test/java']
+    }
+    
+    // compileClasspath � FileCollection
+    //   Default value: ${name}CompileClasspath configuration
+    //   The classpath to use when compiling the source files of this source set.
+    // The classpath used to compile this source.
+    // Default with java plugin:
+    // 	project.configurations.compileClasspath 
+    //  (or project.configurations.testCompileClasspath for the test source set).
+    compileClasspath += sourceSets.main.output
+    compileClasspath += sourceSets.test.output
+    compileClasspath += sourceSets.ili2pg.output
+    
+    // runtimeClasspath � FileCollection
+    //   Default value: $output, ${name}RuntimeClasspath configuration
+    //   The classpath to use when executing the classes of this source set.
+    // The classpath used to execute this source.
+    // Default with java plugin:
+    //   sourceSet.output + project.configurations.runtime 
+    //   (or sourceSet.output + project.configurations.testRuntime for the test source set).
+    runtimeClasspath += sourceSets.main.output
+    runtimeClasspath += sourceSets.test.output
+    runtimeClasspath += sourceSets.ili2pg.output
+  }
+  ili2gpkg {
+    java {
+    	srcDirs=['ili2gpkg/src']
+    }
+    resources {
+    	srcDirs=['ili2gpkg/src']
+    	include '**/init*.sql'
+    }
+    compileClasspath += sourceSets.main.output
+  }
+  ili2gpkgTest {
+    java {
+    	srcDirs=['ili2gpkg/test/java']
+    }
+    compileClasspath += sourceSets.main.output
+    compileClasspath += sourceSets.test.output
+    compileClasspath += sourceSets.ili2gpkg.output
+    runtimeClasspath += sourceSets.main.output
+    runtimeClasspath += sourceSets.test.output
+    runtimeClasspath += sourceSets.ili2gpkg.output
+  }
+  ili2mysql {
+    java {
+    	srcDirs=['ili2mysql/src']
+    }
+    compileClasspath += sourceSets.main.output
+  }
+  ili2mysqlTest {
+    java {
+    	srcDirs=['ili2mysql/test/java']
+    }
+    compileClasspath += sourceSets.main.output
+    compileClasspath += sourceSets.test.output
+    compileClasspath += sourceSets.ili2mysql.output
+    runtimeClasspath += sourceSets.main.output
+    runtimeClasspath += sourceSets.test.output
+    runtimeClasspath += sourceSets.ili2mysql.output
+  }
+  ili2h2gis {
+    java {
+    	srcDirs=['ili2h2gis/src']
+    }
+    compileClasspath += sourceSets.main.output
+  }
+  ili2h2gisTest {
+    java {
+    	srcDirs=['ili2h2gis/test/java']
+    }
+    compileClasspath += sourceSets.main.output
+    compileClasspath += sourceSets.test.output
+    compileClasspath += sourceSets.ili2h2gis.output
+    runtimeClasspath += sourceSets.main.output
+    runtimeClasspath += sourceSets.test.output
+    runtimeClasspath += sourceSets.ili2h2gis.output
+  }
+  ili2duckdb {
+    java {
+      srcDirs=['ili2duckdb/src']
+    }
+    compileClasspath += sourceSets.main.output
+  }
+  ili2duckdbTest {
+    java {
+      srcDirs=['ili2duckdb/test/java']
+    }
+    compileClasspath += sourceSets.main.output
+    compileClasspath += sourceSets.test.output
+    compileClasspath += sourceSets.ili2duckdb.output
+    runtimeClasspath += sourceSets.main.output
+    runtimeClasspath += sourceSets.test.output
+    runtimeClasspath += sourceSets.ili2duckdb.output
+  }
+  ili2fgdb {
+    java {
+    	srcDirs=['ili2fgdb/src']
+    }
+    compileClasspath += sourceSets.main.output
+  }
+  ili2fgdbTest {
+    java {
+    	srcDirs=['ili2fgdb/test/java']
+    }
+    compileClasspath += sourceSets.main.output
+    compileClasspath += sourceSets.test.output
+    compileClasspath += sourceSets.ili2fgdb.output
+    runtimeClasspath += sourceSets.main.output
+    runtimeClasspath += sourceSets.test.output
+    runtimeClasspath += sourceSets.ili2fgdb.output
+  }
+  ili2mssql {
+    java {
+    	srcDirs=['ili2mssql/src']
+    }
+    compileClasspath += sourceSets.main.output
+  }
+  ili2mssqlTest {
+    java {
+    	srcDirs=['ili2mssql/test/java']
+    }
+    compileClasspath += sourceSets.main.output
+    compileClasspath += sourceSets.test.output
+    compileClasspath += sourceSets.ili2mssql.output
+    runtimeClasspath += sourceSets.main.output
+    runtimeClasspath += sourceSets.test.output
+    runtimeClasspath += sourceSets.ili2mssql.output
+  }
+  ili2ora {
+    java {
+    	srcDirs=['ili2ora/src']
+    }
+    compileClasspath += sourceSets.main.output
+  }
+  ili2oraTest {
+    java {
+    	srcDirs=['ili2ora/test/java']
+    }
+    compileClasspath += sourceSets.main.output
+    compileClasspath += sourceSets.test.output
+    compileClasspath += sourceSets.ili2ora.output
+    runtimeClasspath += sourceSets.main.output
+    runtimeClasspath += sourceSets.test.output
+    runtimeClasspath += sourceSets.ili2ora.output
+  }
+}
+
+// If you want to use the convention-based configurations, such as 
+// intTestImplementation, you must declare the dependencies after the new 
+// source set
+configurations {
+	ili2db
+	ili2pgImplementation {
+		extendsFrom implementation
+	}
+	ili2pgRuntimeOnly {
+		extendsFrom runtimeOnly
+	}
+	ili2pgTestImplementation {
+		extendsFrom testImplementation
+		extendsFrom ili2pgImplementation
+	}
+    ili2pgTestRuntimeOnly {
+    	extendsFrom ili2pgRuntimeOnly
+    }
+
+	ili2gpkgImplementation {
+		extendsFrom implementation
+	}
+	ili2gpkgRuntimeOnly {
+		extendsFrom runtimeOnly
+	}
+	ili2gpkgTestRuntimeOnly {
+		extendsFrom ili2gpkgRuntimeOnly
+	}
+	ili2gpkgTestImplementation {
+		extendsFrom testImplementation
+		extendsFrom ili2gpkgImplementation
+	}
+	
+	ili2mysqlImplementation {
+		extendsFrom implementation
+	}
+	ili2mysqlRuntimeOnly {
+		extendsFrom runtimeOnly
+	}
+	ili2mysqlTestRuntimeOnly {
+		extendsFrom ili2mysqlRuntimeOnly
+	}
+	ili2mysqlTestImplementation {
+		extendsFrom testImplementation
+		extendsFrom ili2mysqlImplementation
+	}
+	
+	ili2h2gisImplementation {
+		extendsFrom implementation
+	}
+	ili2h2gisRuntimeOnly {
+		extendsFrom runtimeOnly
+	}
+	ili2h2gisTestRuntimeOnly {
+		extendsFrom ili2h2gisRuntimeOnly
+	}
+	ili2h2gisTestImplementation {
+		extendsFrom testImplementation
+		extendsFrom ili2h2gisImplementation
+	}
+	
+  ili2duckdbImplementation {
+    extendsFrom implementation
+  }
+  ili2duckdbRuntimeOnly {
+    extendsFrom runtimeOnly
+  }
+  ili2duckdbTestRuntimeOnly {
+    extendsFrom ili2duckdbRuntimeOnly
+  }
+  ili2duckdbTestImplementation {
+    extendsFrom testImplementation
+    extendsFrom ili2duckdbImplementation
+  }
+	
+	ili2fgdbImplementation {
+		extendsFrom implementation
+	}
+	ili2fgdbRuntimeOnly {
+		extendsFrom runtimeOnly
+	}
+	ili2fgdbTestImplementation {
+		extendsFrom testImplementation
+		extendsFrom ili2fgdbImplementation
+	}
+	ili2fgdbTestRuntimeOnly {
+		extendsFrom ili2fgdbRuntimeOnly
+	}
+	ili2mssqlImplementation {
+		extendsFrom implementation
+	}
+	ili2mssqlRuntimeOnly {
+		extendsFrom runtimeOnly
+	}
+	ili2mssqlTestImplementation {
+		extendsFrom testImplementation
+		extendsFrom ili2mssqlImplementation
+	}
+	ili2mssqlTestRuntimeOnly {
+		extendsFrom ili2mssqlRuntimeOnly
+	}
+	ili2oraImplementation {
+		extendsFrom implementation
+	}
+	ili2oraRuntimeOnly {
+		extendsFrom runtimeOnly
+	}
+	ili2oraTestImplementation {
+		extendsFrom testImplementation
+		extendsFrom ili2oraImplementation
+	}
+	ili2oraTestRuntimeOnly {
+		extendsFrom ili2oraRuntimeOnly
+	}
+    deployerJars
+    ftpAntTask
+}
+dependencies {
+    implementation group: 'ch.interlis', name: 'iox-ili', version: '1.24.4'
+    implementation group: 'ch.interlis', name: 'ili2c-tool', version: "5.6.8"
+    implementation group: 'ch.interlis', name: 'ili2c-core', version: "5.6.8"
+    implementation group: 'ch.ehi', name: 'ehisqlgen', version: "1.16.3"
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.9.7'
+	implementation group: 'net.iharder', name: 'base64', version: '2.3.9'
+    
+    testImplementation group: 'junit', name: 'junit', version: '4.12'
+	testImplementation group: 'org.hamcrest', name: 'hamcrest-library', version: '1.3'
+    testImplementation 'org.xmlunit:xmlunit-matchers:2.8.2'
+    testImplementation 'org.xmlunit:xmlunit-placeholders:2.8.2'
+	
+	ili2pgImplementation group: 'org.postgresql', name: 'postgresql', version: '42.7.7' 
+	compileOnly group: 'org.postgresql', name: 'postgresql', version: '42.7.7' // add as compileOnly, so that eclipse sees it
+	ili2pgImplementation group: 'com.github.waffle', name: 'waffle-jna', version: '1.9.1'
+	compileOnly group: 'com.github.waffle', name: 'waffle-jna', version: '1.9.1' // add as compileOnly, so that eclipse sees it
+	ili2gpkgImplementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.43.0.0'
+	compileOnly group: 'org.xerial', name: 'sqlite-jdbc', version: '3.43.0.0' // add as compileOnly, so that eclipse sees it
+	ili2mysqlImplementation group: 'mysql', name: 'mysql-connector-java', version: '5.1.49'
+	compileOnly group: 'mysql', name: 'mysql-connector-java', version: '5.1.49' // add as compileOnly, so that eclipse sees it
+	ili2h2gisImplementation group: 'org.orbisgis', name:'h2gis',version: '1.5.0'
+	compileOnly group: 'org.orbisgis', name:'h2gis',version: '1.5.0' // add as compileOnly, so that eclipse sees it
+	
+	//ili2h2gisImplementation group: 'com.h2database', name: 'h2', version: '1.4.200'
+	//compileOnly group: 'com.h2database', name: 'h2', version: '1.4.200'
+	//ili2h2gisImplementation group: 'org.locationtech.jts', name: 'jts-core', version: '1.17.0'
+	//compileOnly group: 'org.locationtech.jts', name: 'jts-core', version: '1.17.0'
+	
+	ili2duckdbImplementation group: 'org.duckdb', name:'duckdb_jdbc',version: '1.5.2.1'
+	compileOnly group: 'org.duckdb', name:'duckdb_jdbc',version: '1.5.2.1' // add as compileOnly, so that eclipse sees it
+	ili2fgdbImplementation group: 'ch.ehi', name: 'fgdb4j', version: "1.1.1"
+	ili2fgdbImplementation "antlr:antlr:2.7.7" 	
+	compileOnly group: 'ch.ehi', name: 'fgdb4j', version: "1.1.1" // add as compileOnly, so that eclipse sees it
+	ili2mssqlImplementation group: 'com.microsoft.sqlserver', name: 'mssql-jdbc', version: '6.4.0.jre7'
+	compileOnly group: 'com.microsoft.sqlserver', name: 'mssql-jdbc', version: '6.4.0.jre7' // add as compileOnly, so that eclipse sees it
+	ili2oraImplementation files('libs/ojdbc14.jar')
+	ili2db group: project.group, name: project.name, version: project.version
+    deployerJars "org.apache.maven.wagon:wagon-ftp:3.5.3"
+    deployerJars "org.apache.maven.wagon:wagon-ssh:3.3.3"
+    ftpAntTask "org.apache.ant:ant-commons-net:1.10.7"
+}
+
+
+task printcp {
+	doLast{
+		//sourceSets.main.output.each { println it }
+		// components.java.each { println it }
+		//System.out.println components.java
+		//System.out.println sourceSets.main.compileClasspath.getFiles()
+		System.out.println sourceSets.ili2pgTest.runtimeClasspath.getFiles()
+	}
+}
+task usrdoc(type:Exec) {
+	group = JavaBasePlugin.DOCUMENTATION_GROUP
+    description = 'Builds the user documentation (html)'
+	def infile=new File(project.projectDir,'docs/ili2db.rst')
+	def outfile=new File('docs/ili2db.html')
+	inputs.file infile
+	outputs.file outfile
+	doFirst{
+		new File(project.buildDir,'docs').mkdir()
+	}
+		workingDir = project.buildDir
+		executable rst2html
+		args = [infile, outfile]
+}
+task ili2pgJar(dependsOn: jar,type: Jar) {
+	baseName = 'ili2pg'
+    from sourceSets.ili2pg.output
+  manifest {
+    attributes(
+      "Main-Class": "ch.ehi.ili2pg.PgMain",
+      "Class-Path": 'libs/'+jar.archiveName+' '+configurations.ili2pgRuntimeClasspath.collect { 'libs/'+it.getName() }.join(' '))
+  }   
+}
+task ili2pgBindist(dependsOn:[usrdoc,ili2pgJar], type: Zip){
+	baseName = 'ili2pg'
+	destinationDir = file('dist')
+	from ili2pgJar
+	into('docs'){
+		from files(fileTree("docs").include("LICENSE.*"),"docs/README.txt","docs/CHANGELOG.txt","build/docs/ili2db.html")
+	}
+	into('libs'){
+		from configurations.ili2pgRuntimeClasspath
+		from jar
+		//def jars=[]
+		//subprojects.each {
+        //	jars+=it.libsDir
+        //}
+        //from jars
+	}
+	// version = '1.0.6'
+}
+task ili2pgTest(type: Test) {
+	maxParallelForks = 1
+	forkEvery = 1
+	
+    classpath = sourceSets.ili2pgTest.runtimeClasspath
+    
+	// testClassesDirs The directories for the compiled test sources
+	// Default with java plugin: project.sourceSets.test.output.classesDirs
+    testClassesDirs = sourceSets.ili2pgTest.output.classesDirs
+	systemProperty 'dburl', dburl
+	systemProperty 'dbusr', dbusr
+	systemProperty 'dbpwd', dbpwd
+    testLogging.exceptionFormat = 'full'
+}
+task ili2gpkgJar(dependsOn: jar,type: Jar) {
+	baseName = 'ili2gpkg'
+    from sourceSets.ili2gpkg.output
+  manifest {
+    attributes(
+      "Main-Class": "ch.ehi.ili2gpkg.GpkgMain",
+      "Class-Path": 'libs/'+jar.archiveName+' '+configurations.ili2gpkgRuntimeClasspath.collect { 'libs/'+it.getName() }.join(' '))
+  }   
+}
+task ili2gpkgBindist(dependsOn:[usrdoc,ili2gpkgJar], type: Zip){
+	baseName = 'ili2gpkg'
+	destinationDir = file('dist')
+	from ili2gpkgJar
+	into('docs'){
+		from files(fileTree("docs").include("LICENSE.*"),"docs/README.txt","docs/CHANGELOG.txt","build/docs/ili2db.html")
+	}
+	into('libs'){
+		from configurations.ili2gpkgRuntimeClasspath
+		from jar
+	}
+}
+task ili2gpkgTest(type: Test) {
+	maxParallelForks = 1
+	forkEvery = 1
+    classpath = sourceSets.ili2gpkgTest.runtimeClasspath
+    testClassesDirs = sourceSets.ili2gpkgTest.output.classesDirs
+    testLogging.exceptionFormat = 'full'
+}
+
+task ili2mysqlJar(dependsOn: jar,type: Jar) {
+	baseName = 'ili2mysql'
+    from sourceSets.ili2mysql.output
+  manifest {
+    attributes(
+      "Main-Class": "ch.ehi.ili2mysql.MysqlMain",
+      "Class-Path": 'libs/'+jar.archiveName+' '+configurations.ili2mysqlRuntimeClasspath.collect { 'libs/'+it.getName() }.join(' '))
+  }   
+}
+task ili2mysqlBindist(dependsOn:[usrdoc,ili2mysqlJar], type: Zip){
+	baseName = 'ili2mysql'
+	destinationDir = file('dist')
+	from ili2mysqlJar
+	into('docs'){
+		from files(fileTree("docs").include("LICENSE.*"),"docs/README.txt","docs/CHANGELOG.txt","build/docs/ili2db.html")
+	}
+	into('libs'){
+		from configurations.ili2mysqlRuntimeClasspath
+		from jar
+	}
+}
+task ili2mysqlTest(type: Test) {
+	maxParallelForks = 1
+	forkEvery = 1
+    classpath = sourceSets.ili2mysqlTest.runtimeClasspath
+    testClassesDirs = sourceSets.ili2mysqlTest.output.classesDirs
+    testLogging.exceptionFormat = 'full'
+	systemProperty 'dburl', myurl
+	systemProperty 'dbusr', myusr
+	systemProperty 'dbpwd', mypwd
+}
+
+task ili2h2gisJar(dependsOn: jar,type: Jar) {
+	baseName = 'ili2h2gis'
+    from sourceSets.ili2h2gis.output
+  manifest {
+    attributes(
+      "Main-Class": "ch.ehi.ili2h2gis.H2gisMain",
+      "Class-Path": 'libs/'+jar.archiveName+' '+configurations.ili2h2gisRuntimeClasspath.collect { 'libs/'+it.getName() }.join(' '))
+  }   
+}
+task ili2h2gisBindist(dependsOn:[usrdoc,ili2h2gisJar], type: Zip){
+	baseName = 'ili2h2gis'
+	destinationDir = file('dist')
+	from ili2h2gisJar
+	into('docs'){
+		from files(fileTree("docs").include("LICENSE.*"),"docs/README.txt","docs/CHANGELOG.txt","build/docs/ili2db.html")
+	}
+	into('libs'){
+		from configurations.ili2h2gisRuntimeClasspath
+		from jar
+	}
+}
+task ili2h2gisTest(type: Test) {
+	maxParallelForks = 1
+	forkEvery = 1
+    classpath = sourceSets.ili2h2gisTest.runtimeClasspath
+    testClassesDirs = sourceSets.ili2h2gisTest.output.classesDirs
+    testLogging.exceptionFormat = 'full'
+	systemProperty 'dburl', myurl
+	systemProperty 'dbusr', myusr
+	systemProperty 'dbpwd', mypwd
+}
+
+task ili2duckdbJar(dependsOn: jar,type: Jar) {
+  baseName = 'ili2duckdb'
+    from sourceSets.ili2duckdb.output
+  manifest {
+    attributes(
+      "Main-Class": "ch.ehi.ili2duckdb.DuckDBMain",
+      "Class-Path": 'libs/'+jar.archiveName+' '+configurations.ili2duckdbRuntimeClasspath.collect { 'libs/'+it.getName() }.join(' '))
+  }   
+}
+task ili2duckdbBindist(dependsOn:[usrdoc,ili2duckdbJar], type: Zip){
+  baseName = 'ili2duckdb'
+  destinationDir = file('dist')
+  from ili2duckdbJar
+  into('docs'){
+    from files(fileTree("docs").include("LICENSE.*"),"docs/README.txt","docs/CHANGELOG.txt","build/docs/ili2db.html")
+  }
+  into('libs'){
+    from configurations.ili2duckdbRuntimeClasspath
+    from jar
+  }
+}
+task ili2duckdbTest(type: Test) {
+  maxParallelForks = 1
+  forkEvery = 1
+  classpath = sourceSets.ili2duckdbTest.runtimeClasspath
+  testClassesDirs = sourceSets.ili2duckdbTest.output.classesDirs
+  testLogging.exceptionFormat = 'full'
+}
+
+task ili2fgdbJar(dependsOn: jar,type: Jar) {
+	baseName = 'ili2fgdb'
+    from sourceSets.ili2fgdb.output
+  manifest {
+    attributes(
+      "Main-Class": "ch.ehi.ili2fgdb.FgdbMain",
+      "Class-Path": 'libs/'+jar.archiveName+' '+configurations.ili2fgdbRuntimeClasspath.collect { 'libs/'+it.getName() }.join(' '))
+  }   
+}
+task ili2fgdbBindist(dependsOn:[usrdoc,ili2fgdbJar], type: Zip){
+	baseName = 'ili2fgdb'
+	destinationDir = file('dist')
+	from ili2fgdbJar
+	into('docs'){
+		from files(fileTree("docs").include("LICENSE.*"),"docs/README.txt","docs/CHANGELOG.txt","build/docs/ili2db.html")
+	}
+	into('libs'){
+		from configurations.ili2fgdbRuntimeClasspath
+		from jar
+	}
+}
+task ili2fgdbTest(type: Test) {
+	maxParallelForks = 1
+	forkEvery = 1
+    classpath = sourceSets.ili2fgdbTest.runtimeClasspath
+    testClassesDirs = sourceSets.ili2fgdbTest.output.classesDirs
+    testLogging.exceptionFormat = 'full'
+}
+task ili2mssqlJar(dependsOn: jar,type: Jar) {
+	baseName = 'ili2mssql'
+    from sourceSets.ili2mssql.output
+  manifest {
+    attributes(
+      "Main-Class": "ch.ehi.ili2mssql.MsSqlMain",
+      "Class-Path": 'libs/'+jar.archiveName+' '+configurations.ili2mssqlRuntimeClasspath.collect { 'libs/'+it.getName() }.join(' '))
+  }   
+}
+task ili2mssqlBindist(dependsOn:[usrdoc,ili2mssqlJar], type: Zip){
+	baseName = 'ili2mssql'
+	destinationDir = file('dist')
+	from ili2mssqlJar
+	into('docs'){
+		from files(fileTree("docs").include("LICENSE.*"),"docs/README.txt","docs/CHANGELOG.txt","build/docs/ili2db.html")
+	}
+	into('libs'){
+		from configurations.ili2mssqlRuntimeClasspath
+		from jar
+	}
+}
+task ili2mssqlTest(type: Test) {
+	maxParallelForks = 1
+	forkEvery = 1
+    classpath = sourceSets.ili2mssqlTest.runtimeClasspath
+    testClassesDirs = sourceSets.ili2mssqlTest.output.classesDirs
+	systemProperty 'dburl', dburl
+	systemProperty 'dbusr', dbusr
+	systemProperty 'dbpwd', dbpwd
+    testLogging.exceptionFormat = 'full'
+}
+task ili2oraJar(dependsOn: jar,type: Jar) {
+	baseName = 'ili2ora'
+    from sourceSets.ili2ora.output
+  manifest {
+    attributes(
+      "Main-Class": "ch.ehi.ili2ora.OraMain",
+      "Class-Path": 'libs/'+jar.archiveName+' '+configurations.ili2oraRuntimeClasspath.collect { 'libs/'+it.getName() }.join(' '))
+  }   
+}
+task ili2oraBindist(dependsOn:[usrdoc,ili2oraJar], type: Zip){
+	baseName = 'ili2ora'
+	destinationDir = file('dist')
+	from ili2oraJar
+	into('docs'){
+		from files(fileTree("docs").include("LICENSE.*"),"docs/README.txt","docs/CHANGELOG.txt","build/docs/ili2db.html")
+	}
+	into('libs'){
+		from configurations.ili2oraRuntimeClasspath
+		from jar
+	}
+}
+task ili2oraTest(type: Test) {
+	maxParallelForks = 1
+	forkEvery = 1
+    classpath = sourceSets.ili2oraTest.runtimeClasspath
+    testClassesDirs = sourceSets.ili2oraTest.output.classesDirs
+    testLogging.exceptionFormat = 'full'
+}
+
+task generateMyResources {
+	doLast {
+		def versionProps = new Properties()
+		versionProps.setProperty('version', "$project.version")
+		versionProps.setProperty('versionCommit', getGitHash())
+		def versionPropsFile = new File(generatedResources,"ch/ehi/ili2db/Version.properties")
+		versionPropsFile.getParentFile().mkdirs();
+		versionProps.store(versionPropsFile.newWriter(), null);
+	}
+}
+
+test {
+	// when Gradle forks a new Java process, it does not automatically pass the 
+	// environment variable values along to the new environment. One has to 
+	// explicitly pass these variables
+	systemProperty 'dburl', dburl
+	systemProperty 'dbusr', dbusr
+	systemProperty 'dbpwd', dbpwd
+    testLogging.exceptionFormat = 'full'
+}
+
+configurations {
+    antClasspath
+}
+
+dependencies {
+    antClasspath group: 'org.apache.ant', name: 'ant-junit', version: '1.9.13'
+
+}
+
+ClassLoader antClassLoader = org.apache.tools.ant.Project.class.classLoader
+ configurations.antClasspath.each { File f ->
+   antClassLoader.addURL(f.toURI().toURL())
+ 
+}
+task testreport {
+	doLast{
+		//ant.taskdef(name: 'antClasspath',
+        //            classname: 'org.apache.tools.ant.taskdefs.optional.junit.XMLResultAggregator',
+        //            classpath: configurations.antClasspath.asPath)
+		ant.delete(dir:'build/junitreport', quiet:'true')
+		ant.mkdir(dir:'build/junitreport')
+		ant.junitreport(todir: 'build/junitreport/', tofile: 'ceis.xml'){
+			fileset(dir:"build/test-results"){
+				include(name: "**/TEST-*.xml")
+			}
+			report(todir: 'build/junitreport',format: 'noframes', styledir: 'travis'){
+			}
+		}
+	}
+}
+
+// use plugin 'maven' instead of 'maven-publish', 
+// because 'maven-publish' doesn't support ftp repository access
+artifacts {
+    archives(jar.archivePath){
+    	builtBy jar
+    }
+	archives(ili2pgBindist.archivePath) {
+        type 'zip'
+        classifier 'bindist'
+        builtBy ili2pgBindist
+    }
+    archives(ili2pgJar.archivePath){
+    	builtBy ili2pgJar
+    }
+	archives(ili2gpkgBindist.archivePath) {
+        type 'zip'
+        classifier 'bindist'
+        builtBy ili2gpkgBindist
+    }
+    archives(ili2gpkgJar.archivePath){
+    	builtBy ili2gpkgJar
+    }
+	archives(ili2mysqlBindist.archivePath) {
+        type 'zip'
+        classifier 'bindist'
+        builtBy ili2mysqlBindist
+    }
+    archives(ili2mysqlJar.archivePath){
+    	builtBy ili2mysqlJar
+    }
+	archives(ili2h2gisBindist.archivePath) {
+        type 'zip'
+        classifier 'bindist'
+        builtBy ili2h2gisBindist
+    }
+    archives(ili2h2gisJar.archivePath){
+    	builtBy ili2h2gisJar
+    }
+	archives(ili2duckdbBindist.archivePath) {
+        type 'zip'
+        classifier 'bindist'
+        builtBy ili2duckdbBindist
+    }
+    archives(ili2duckdbJar.archivePath){
+    	builtBy ili2duckdbJar
+    }
+	archives(ili2fgdbBindist.archivePath) {
+        type 'zip'
+        classifier 'bindist'
+        builtBy ili2fgdbBindist
+    }
+    archives(ili2fgdbJar.archivePath){
+    	builtBy ili2fgdbJar
+    }
+	archives(ili2mssqlBindist.archivePath) {
+        type 'zip'
+        classifier 'bindist'
+        builtBy ili2mssqlBindist
+    }
+    archives(ili2mssqlJar.archivePath){
+    	builtBy ili2mssqlJar
+    }
+	archives(ili2oraBindist.archivePath) {
+        type 'zip'
+        classifier 'bindist'
+        builtBy ili2oraBindist
+    }
+    archives(ili2oraJar.archivePath){
+    	builtBy ili2oraJar
+    }
+}
+
+install {
+    repositories {
+    	mavenInstaller {
+            addFilter('ili2db') {artifact, file ->
+                artifact.name == 'ili2db'
+            }            
+            addFilter('ili2pg') {artifact, file ->
+                artifact.name == 'ili2pg'
+            }            
+            addFilter('ili2mysql') {artifact, file ->
+                artifact.name == 'ili2mysql'
+            }            
+            addFilter('ili2h2gis') {artifact, file ->
+                artifact.name == 'ili2h2gis'
+            }            
+            addFilter('ili2duckdb') {artifact, file ->
+                artifact.name == 'ili2duckdb'
+            }            
+            addFilter('ili2gpkg') {artifact, file ->
+                artifact.name == 'ili2gpkg'
+            }            
+            addFilter('ili2fgdb') {artifact, file ->
+                artifact.name == 'ili2fgdb'
+            }            
+            addFilter('ili2mssql') {artifact, file ->
+                artifact.name == 'ili2mssql'
+            }            
+            addFilter('ili2ora') {artifact, file ->
+                artifact.name == 'ili2ora'
+            }            
+            pom('ili2db').artifactId = 'ili2db'
+            pom('ili2db').scopeMappings.with {
+                mappings.clear()
+                addMapping(300, configurations.implementation, 'runtime')
+            }
+            pom('ili2pg').artifactId = 'ili2pg'
+            pom('ili2pg').scopeMappings.with {
+                mappings.clear()
+                addMapping(300, configurations.ili2pgCompileClasspath, 'runtime')
+                addMapping(300, configurations.ili2db, 'compile')
+            }
+            pom('ili2mysql').artifactId = 'ili2mysql'
+            pom('ili2mysql').scopeMappings.with {
+                mappings.clear()
+                addMapping(300, configurations.ili2mysqlCompileClasspath, 'runtime')
+                addMapping(300, configurations.ili2db, 'compile')
+            }
+            pom('ili2h2gis').artifactId = 'ili2h2gis'
+            pom('ili2h2gis').scopeMappings.with {
+                mappings.clear()
+                addMapping(300, configurations.ili2h2gisCompileClasspath, 'runtime')
+                addMapping(300, configurations.ili2db, 'compile')
+            }
+            pom('ili2duckdb').artifactId = 'ili2duckdb'
+            pom('ili2duckdb').scopeMappings.with {
+                mappings.clear()
+                addMapping(300, configurations.ili2duckdbCompileClasspath, 'runtime')
+                addMapping(300, configurations.ili2db, 'compile')
+            }
+            pom('ili2gpkg').artifactId = 'ili2gpkg'
+            pom('ili2gpkg').scopeMappings.with {
+                mappings.clear()
+                addMapping(300, configurations.ili2gpkgCompileClasspath, 'runtime')
+                addMapping(300, configurations.ili2db, 'compile')
+            }
+            pom('ili2fgdb').artifactId = 'ili2fgdb'
+            pom('ili2fgdb').scopeMappings.with {
+                mappings.clear()
+                addMapping(300, configurations.ili2fgdbCompileClasspath, 'runtime')
+                addMapping(300, configurations.ili2db, 'compile')
+            }
+            pom('ili2mssql').artifactId = 'ili2mssql'
+            pom('ili2mssql').scopeMappings.with {
+                mappings.clear()
+                addMapping(300, configurations.ili2mssqlCompileClasspath, 'runtime')
+                addMapping(300, configurations.ili2db, 'compile')
+            }
+            pom('ili2ora').artifactId = 'ili2ora'
+            pom('ili2ora').scopeMappings.with {
+                mappings.clear()
+                addMapping(300, configurations.ili2oraCompileClasspath, 'runtime')
+                addMapping(300, configurations.ili2db, 'compile')
+            }
+    	}
+    }
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+        	configuration = configurations.deployerJars
+			repository(url: repos_url){
+            	authentication(userName: repos_usr, password: repos_pwd)
+            }
+            addFilter('ili2db') {artifact, file ->
+                artifact.name == 'ili2db'
+            }            
+            addFilter('ili2pg') {artifact, file ->
+                artifact.name == 'ili2pg'
+            }            
+            addFilter('ili2mysql') {artifact, file ->
+                artifact.name == 'ili2mysql'
+            }            
+            addFilter('ili2h2gis') {artifact, file ->
+                artifact.name == 'ili2h2gis'
+            }            
+            addFilter('ili2duckdb') {artifact, file ->
+                artifact.name == 'ili2duckdb'
+            } 
+            addFilter('ili2gpkg') {artifact, file ->
+                artifact.name == 'ili2gpkg'
+            } 
+            addFilter('ili2fgdb') {artifact, file ->
+                artifact.name == 'ili2fgdb'
+            }            
+            addFilter('ili2mssql') {artifact, file ->
+                artifact.name == 'ili2mssql'
+            }            
+            addFilter('ili2ora') {artifact, file ->
+                artifact.name == 'ili2ora'
+            } 
+            pom('ili2db').artifactId = 'ili2db'
+            pom('ili2db').scopeMappings.with {
+                mappings.clear()
+                addMapping(300, configurations.implementation, 'runtime')
+            }
+            pom('ili2pg').artifactId = 'ili2pg'
+            pom('ili2pg').scopeMappings.with {
+                mappings.clear()
+                addMapping(300, configurations.ili2pgCompileClasspath, 'runtime')
+                addMapping(300, configurations.ili2db, 'compile')
+            }
+            pom('ili2mysql').artifactId = 'ili2mysql'
+            pom('ili2mysql').scopeMappings.with {
+                mappings.clear()
+                addMapping(300, configurations.ili2mysqlCompileClasspath, 'runtime')
+                addMapping(300, configurations.ili2db, 'compile')
+            }
+            pom('ili2h2gis').artifactId = 'ili2h2gis'
+            pom('ili2h2gis').scopeMappings.with {
+                mappings.clear()
+                addMapping(300, configurations.ili2h2gisCompileClasspath, 'runtime')
+                addMapping(300, configurations.ili2db, 'compile')
+            }
+            pom('ili2duckdb').artifactId = 'ili2duckdb'
+            pom('ili2duckdb').scopeMappings.with {
+                mappings.clear()
+                addMapping(300, configurations.ili2duckdbCompileClasspath, 'runtime')
+                addMapping(300, configurations.ili2db, 'compile')
+            }
+            pom('ili2gpkg').artifactId = 'ili2gpkg'
+            pom('ili2gpkg').scopeMappings.with {
+                mappings.clear()
+                addMapping(300, configurations.ili2gpkgCompileClasspath, 'runtime')
+                addMapping(300, configurations.ili2db, 'compile')
+            }
+            pom('ili2fgdb').artifactId = 'ili2fgdb'
+            pom('ili2fgdb').scopeMappings.with {
+                mappings.clear()
+                addMapping(300, configurations.ili2fgdbCompileClasspath, 'runtime')
+                addMapping(300, configurations.ili2db, 'compile')
+            }
+            pom('ili2mssql').artifactId = 'ili2mssql'
+            pom('ili2mssql').scopeMappings.with {
+                mappings.clear()
+                addMapping(300, configurations.ili2mssqlCompileClasspath, 'runtime')
+                addMapping(300, configurations.ili2db, 'compile')
+            }
+            pom('ili2ora').artifactId = 'ili2ora'
+            pom('ili2ora').scopeMappings.with {
+                mappings.clear()
+                addMapping(300, configurations.ili2oraCompileClasspath, 'runtime')
+                addMapping(300, configurations.ili2db, 'compile')
+            }
+        }
+    }
+}
+
+void uploadFile(String programName, File archiveFile) {
+		def archiveDir= archiveFile.parent
+		def archiveName=archiveFile.name
+		def json = groovy.json.JsonOutput.toJson([filename: 'https://downloads.interlis.ch/'+programName+'/'+archiveName, version: project.version ,date: new Date().format( 'yyyy-MM-dd' )])
+		def releaseFile = new File(archiveDir,programName+"-release.json")
+		releaseFile.write(json)
+		logger.info("uploadFile "+programName+"...")
+		ant.ftp(server: "jql.ftp.infomaniak.com", userid: project.ext.downloads_usr, password: project.ext.downloads_pwd, 
+			action: "put",
+			remoteDir: '/'+programName, passive:"yes") {
+				fileset(dir: archiveDir ) {
+					include(name: archiveName)
+					include(name: releaseFile.name)
+				}
+		}
+
+}
+
+task uploadBin(dependsOn: [ili2pgBindist,ili2gpkgBindist,ili2mysqlBindist,ili2h2gisBindist,ili2duckdbBindist,ili2fgdbBindist,ili2mssqlBindist,ili2oraBindist]) {
+	doLast {
+		ant.taskdef(name: 'ftp',
+					classname: 'org.apache.tools.ant.taskdefs.optional.net.FTP',
+					classpath: configurations.ftpAntTask.asPath)
+		uploadFile('ili2pg',ili2pgBindist.archiveFile.get().asFile)
+		uploadFile('ili2gpkg',ili2gpkgBindist.archiveFile.get().asFile)
+		uploadFile('ili2mysql',ili2mysqlBindist.archiveFile.get().asFile)
+		uploadFile('ili2h2gis',ili2h2gisBindist.archiveFile.get().asFile)
+		uploadFile('ili2duckdb',ili2duckdbBindist.archiveFile.get().asFile)
+		uploadFile('ili2fgdb',ili2fgdbBindist.archiveFile.get().asFile)
+		uploadFile('ili2mssql',ili2mssqlBindist.archiveFile.get().asFile)
+		uploadFile('ili2ora',ili2oraBindist.archiveFile.get().asFile)
+	}
+}
+
+task uploadDoc(){  // dependsOn: [usrdoc,ilidoc]) {
+	doLast {
+		ant.taskdef(name: 'ftp',
+					classname: 'org.apache.tools.ant.taskdefs.optional.net.FTP',
+					classpath: configurations.ftpAntTask.asPath)
+		def remoteDir="/ili2db/"+project.version
+		ant.ftp(action:"mkdir", server: "jql.ftp.infomaniak.com", userid: docs_usr, password: docs_pwd, 
+			remoteDir: remoteDir, passive:"yes") {
+		}
+		ant.ftp(server: "jql.ftp.infomaniak.com", userid: docs_usr, password: docs_pwd, 
+			remoteDir: remoteDir, passive:"yes") {
+				fileset(dir:  "build/docs") {
+					include(name: "ili2db.html")
+				}
+		}
+	}
+}

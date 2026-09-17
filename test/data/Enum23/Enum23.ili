@@ -1,0 +1,57 @@
+INTERLIS 2.3;
+
+MODEL Enum23
+  AT "mailto:ce@eisenhutinformatik.ch" VERSION "2016-12-21" =
+
+  DOMAIN
+    Enum1 = (Test1, Test2_ele, Test3 (ele1, ele_2),
+            !!@ili2db.dispName=testelevier
+            Test4_ele);
+
+    BooleanDomain = BOOLEAN;
+    
+  TOPIC TestA =
+    
+    CLASS ClassA1 =
+    	attr1 : TEXT*60;
+    	attr2 : Enum1;
+    	attr3 : (Test1, Test2_ele, Test3 (ele1, ele_2),
+    	    !!@ili2db.dispName=Attr3_elevier
+             Test4_ele);
+	attr4 : BOOLEAN;
+        attr5 : BooleanDomain;
+    END ClassA1;
+    
+  END TestA;
+  
+  
+END Enum23.
+
+MODEL Enum23_fr (fr)
+  AT "mailto:ce@eisenhutinformatik.ch" VERSION "2022-04-26" 
+  TRANSLATION OF Enum23 ["2016-12-21"]
+  =
+
+  DOMAIN
+    Enum1_fr = (Test1_fr, Test2_ele_fr, Test3_fr (ele1_fr, ele_2_fr),
+            !!@ili2db.dispName_fr=testelevier_fr
+            Test4_ele_fr);
+
+    BooleanDomain_fr = BOOLEAN;
+    
+  TOPIC TestA_fr =
+    
+    CLASS ClassA1_fr =
+    	attr1_fr : TEXT*60;
+    	attr2_fr : Enum1_fr;
+    	attr3_fr : (Test1_fr, Test2_ele_fr, Test3_fr (ele1_fr, ele_2_fr),
+    	    !!@ili2db.dispName=Attr3_elevier_fr
+             Test4_ele_fr);
+	attr4_fr : BOOLEAN;
+        attr5_fr : BooleanDomain_fr;
+    END ClassA1_fr;
+    
+  END TestA_fr;
+  
+  
+END Enum23_fr.

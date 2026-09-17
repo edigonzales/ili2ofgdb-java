@@ -1,0 +1,27 @@
+INTERLIS 2.4;
+
+MODEL Json24
+  AT "mailto:ce@eisenhutinformatik.ch" VERSION "2018-12-21" =
+	
+  TOPIC TestA =
+  	 
+	STRUCTURE Farbe =
+	   r: 0..255;
+	   g: 0..255;
+	   b: 0..255;
+	   name: TEXT*40;
+	   active: BOOLEAN;
+	END Farbe;
+	CLASS Auto =
+	  !!@ili2db.mapping=JSON
+	  Farben: LIST {0..*} OF Farbe;
+	  !!@ili2db.mapping=JSON
+	  Farbe: LIST {0..1} OF Farbe;
+	  !!@ili2db.mapping=JSON
+	  Nummer: LIST {0..*} OF TEXT*10;
+	END Auto;    
+	
+  END TestA;
+  
+  
+END Json24.

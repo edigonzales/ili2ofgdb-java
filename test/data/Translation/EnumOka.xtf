@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TRANSFER xmlns="http://www.interlis.ch/INTERLIS2.3">
+	<HEADERSECTION SENDER="ili2pg-3.8.0-20170326" VERSION="2.3">
+		<MODELS>
+			<MODEL NAME="EnumOkA" VERSION="1" URI="http://www.interlis.ch/ili2c/tests/"></MODEL>
+			<MODEL NAME="EnumOkB" VERSION="1" URI="http://www.interlis.ch/ili2c/tests/"></MODEL>
+		</MODELS>
+	</HEADERSECTION>
+	<DATASECTION>
+		<EnumOkA.TopicA BID="EnumOkA.Test1">
+			<EnumOkA.TopicA.ClassA2 TID="o3"></EnumOkA.TopicA.ClassA2>
+			<EnumOkA.TopicA.ClassA TID="o1"></EnumOkA.TopicA.ClassA>
+			<EnumOkA.TopicA.ClassA TID="o2">
+				<attrA>a2.a21</attrA>
+				<attrA2>
+					<Basis.Struct>
+						<attrA>a3.a32</attrA>
+						<attrA2>a3.a32</attrA2>
+					</Basis.Struct>
+				</attrA2>
+				<attrA3>
+					<TranslatedBasisA.TrStructA>
+						<trAttrA>a3.a32</trAttrA>
+						<trAttrA2>a3.a32</trAttrA2>
+					</TranslatedBasisA.TrStructA>
+				</attrA3>
+				<attrA4>a2.a21</attrA4>
+				<n_1A_A2 REF="o3"/>
+			</EnumOkA.TopicA.ClassA>
+			<EnumOkA.TopicA.n_nA>
+				<n_nA_A REF="o1"/>
+				<n_nA_A2 REF="o3"/>
+			</EnumOkA.TopicA.n_nA>
+			<!-- EnumOkA.TopicA.ClassA TID="o4">
+				<attrA2>
+					<Basis.Struct2>
+						<attrA>a3.a32</attrA>
+					</Basis.Struct2>
+				</attrA2>
+				<attrA3>
+					<TranslatedBasisA.TrStructA2>
+						<trAttrA>a3.a32</trAttrA>
+					</TranslatedBasisA.TrStructA2>
+				</attrA3>
+				<n_1A_A2 REF="o3"/>
+			</EnumOkA.TopicA.ClassA -->
+		</EnumOkA.TopicA>
+	</DATASECTION>
+</TRANSFER>

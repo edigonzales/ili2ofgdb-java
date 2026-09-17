@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TRANSFER xmlns="http://www.interlis.ch/INTERLIS2.3">
+	<HEADERSECTION SENDER="ili2gpkg-3.8.1-20170420" VERSION="2.3">
+		<MODELS>
+			<MODEL NAME="CatalogueObjects1" VERSION="2017-04-21" URI="mailto:ce@eisenhutinformatik.ch"></MODEL>
+		</MODELS>
+	</HEADERSECTION>
+	<DATASECTION>
+		<CatalogueObjects1.TopicA BID="CatalogueObjects1.TopicA.1">
+			<CatalogueObjects1.TopicA.Katalog_Programm TID="5880375a-52cd-4b2d-af50-c3a6fc5c5352">
+				<Code>Bio</Code>
+				<Programm>
+					<LocalisationCH_V1.MultilingualText>
+						<LocalisedText>
+							<LocalisationCH_V1.LocalisedText>
+								<Language>de</Language>
+								<Text>Bioproduktion</Text>
+							</LocalisationCH_V1.LocalisedText>
+							<LocalisationCH_V1.LocalisedText>
+								<Language>fr</Language>
+								<Text>Production bio</Text>
+							</LocalisationCH_V1.LocalisedText>
+							<LocalisationCH_V1.LocalisedText>
+								<Language>it</Language>
+								<Text>Agricoltura biologica</Text>
+							</LocalisationCH_V1.LocalisedText>
+						</LocalisedText>
+					</LocalisationCH_V1.MultilingualText>
+				</Programm>
+			</CatalogueObjects1.TopicA.Katalog_Programm>
+			<CatalogueObjects1.TopicA.Katalog_Programm TID="2d9b613c-ecd1-47b9-b6b3-17116e16ffc7">
+				<Code>Extenso</Code>
+				<Programm>
+					<LocalisationCH_V1.MultilingualText>
+						<LocalisedText>
+							<LocalisationCH_V1.LocalisedText>
+								<Language>de</Language>
+								<Text>Extensoproduktion</Text>
+							</LocalisationCH_V1.LocalisedText>
+							<LocalisationCH_V1.LocalisedText>
+								<Language>fr</Language>
+								<Text>Production extenso</Text>
+							</LocalisationCH_V1.LocalisedText>
+							<LocalisationCH_V1.LocalisedText>
+								<Language>it</Language>
+								<Text>Produzione extensiva</Text>
+							</LocalisationCH_V1.LocalisedText>
+						</LocalisedText>
+					</LocalisationCH_V1.MultilingualText>
+				</Programm>
+			</CatalogueObjects1.TopicA.Katalog_Programm>
+		</CatalogueObjects1.TopicA>
+		<CatalogueObjects1.TopicB BID="CatalogueObjects1.TopicB.1">
+			<CatalogueObjects1.TopicB.OhneUuid TID="CatalogueObjects1.TopicB.OhneUuid.1">
+			</CatalogueObjects1.TopicB.OhneUuid>
+		</CatalogueObjects1.TopicB>
+		<CatalogueObjects1.TopicC BID="CatalogueObjects1.TopicC.1">
+			<CatalogueObjects1.TopicC.Nutzung TID="Nutzung.1">
+				<Programm_n>
+					<CatalogueObjects1.TopicA.Katalog_ProgrammRef>
+						<Reference REF="5880375a-52cd-4b2d-af50-c3a6fc5c5352"/>
+					</CatalogueObjects1.TopicA.Katalog_ProgrammRef>
+					<CatalogueObjects1.TopicA.Katalog_ProgrammRef>
+						<Reference REF="2d9b613c-ecd1-47b9-b6b3-17116e16ffc7"/>
+					</CatalogueObjects1.TopicA.Katalog_ProgrammRef>
+				</Programm_n>
+				<OhneUuid_n>
+					<CatalogueObjects1.TopicB.OhneUuidRef>
+						<Reference REF="CatalogueObjects1.TopicB.OhneUuid.1"/>
+					</CatalogueObjects1.TopicB.OhneUuidRef>
+				</OhneUuid_n>
+				<Programm_1>
+					<CatalogueObjects1.TopicA.Katalog_ProgrammRef>
+						<Reference REF="5880375a-52cd-4b2d-af50-c3a6fc5c5352"/>
+					</CatalogueObjects1.TopicA.Katalog_ProgrammRef>
+				</Programm_1>
+				<OhneUuid_1>
+					<CatalogueObjects1.TopicB.OhneUuidRef>
+						<Reference REF="CatalogueObjects1.TopicB.OhneUuid.1"/>
+					</CatalogueObjects1.TopicB.OhneUuidRef>
+				</OhneUuid_1>
+			</CatalogueObjects1.TopicC.Nutzung>
+		</CatalogueObjects1.TopicC>
+	</DATASECTION>
+</TRANSFER>

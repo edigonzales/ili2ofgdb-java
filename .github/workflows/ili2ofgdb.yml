@@ -1,0 +1,86 @@
+name: ili2ofgdb-java
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: test-${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+          - macos-15-intel
+          - macos-15
+          - windows-2025
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 11 (Gradle runtime and tests)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '11'
+
+      - name: Contract and flavor tests
+        shell: bash
+        run: ./gradlew --no-daemon --refresh-dependencies -x usrdoc ili2ofgdbTest
+
+      - name: Smoke (CLI schema import, import, inspection)
+        shell: bash
+        run: ./gradlew --no-daemon -x usrdoc ili2ofgdbSmoke
+
+  interop:
+    name: interop-gdal
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup conda (GDAL)
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          activate-environment: gdal
+          channels: conda-forge
+          channel-priority: strict
+
+      - name: Install GDAL
+        shell: bash -el {0}
+        run: conda install -y -n gdal gdal=3.12
+
+      - name: Setup Java 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '11'
+
+      - name: Tests with mandatory GDAL interop checks
+        shell: bash -el {0}
+        run: ./gradlew --no-daemon --refresh-dependencies -x usrdoc ili2ofgdbTest -PgdalPrefix="$CONDA_PREFIX" -PrequireGdal=true
+
+  upstream-drift:
+    name: upstream-drift
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '11'
+
+      - name: Fetch upstream ili2db
+        run: git fetch --no-tags --depth=1 https://github.com/claeis/ili2db.git master:refs/remotes/upstream/master
+
+      - name: Verify that the imported ili2db core is unmodified
+        run: ./gradlew --no-daemon verifyUpstreamCoreUnmodified

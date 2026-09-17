@@ -25,6 +25,28 @@ behind the existing JDBC shim (`OfgdbDriver`, `OfgdbConnection`, `OfgdbStatement
 | `ili2ofgdb/test/java` | FGDB contract tests and FGDB specific tests |
 | `ili2ofgdb/test/data` | FGDB specific test data (mapping, smoke) |
 
+## Architecture
+
+The flavor keeps the ili2db mapping architecture and the JDBC interface, and replaces the native
+`openfgdb4j` backend by the pure Java [filegdb4j](https://github.com/edigonzales/filegdb4j) library:
+
+* `ch.ehi.ili2ofgdb.jdbc.OfgdbDriver` / `OfgdbConnection` / `OfgdbStatement` / `OfgdbMetaData` -
+  the JDBC shim. One refcounted session per `.gdb` file is shared by all connections.
+* `ch.ehi.ili2ofgdb.jdbc.OfgdbFileGdb` - the storage engine: tables, rows, DDL/DML, domains and
+  relationship classes on top of filegdb4j.
+* `ch.ehi.ili2ofgdb.jdbc.OfgdbSql` - the small SQL dialect of ili2db: `CREATE TABLE`, `INSERT`,
+  `UPDATE`, `DELETE` and WHERE evaluation.
+* `ch.ehi.ili2ofgdb.jdbc.OfgdbGeometryBridge` / `OfgdbIomGeometry` - WKB (the contract of the JDBC
+  layer) to the native filegdb4j geometry model, including circular arcs.
+* `ch.ehi.ili2ofgdb.OfgdbMapping` - domains and relationship classes, implemented through the
+  public custom mapping hooks only; the ili2db core stays untouched.
+
+Genuine backend differences are documented as capability flags in the shared test base
+(`AbstractTestSetup#supportsMultipleGeometryColumns`, `#supportsUniqueConstraints`,
+`#supportsDdlScripts`): the file geodatabase stores one geometry column per table, has no attribute
+indexes and cannot collect offline DDL scripts. The corresponding contract tests skip themselves
+with a reason instead of being silently replaced.
+
 ## Build
 
 ```bash
@@ -42,6 +64,22 @@ conda activate gdal
 # or
 ./gradlew ili2ofgdbTest -PgdalPrefix=/opt/miniconda3/envs/gdal
 ```
+
+The end to end smoke (CLI schema import, data import and catalog/geometry inspection of a real
+model) runs with:
+
+```bash
+./gradlew ili2ofgdbSmoke
+```
+
+The imported ili2db core is protected against accidental changes:
+
+```bash
+./gradlew verifyUpstreamCoreUnmodified
+```
+
+Intentional divergences (test capability flags) are listed in
+[tools/upstream-drift-allowlist.txt](tools/upstream-drift-allowlist.txt).
 
 ## License
 

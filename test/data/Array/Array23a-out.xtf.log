@@ -1,10 +1,10 @@
-Info: ili2ofgdb-5.5.3-SNAPSHOT-07da98adb35e8dac490b78af439455cda2f41d51
+Info: ili2ofgdb-5.5.3-SNAPSHOT-0fcc9c6949958e06377ebd7eed058955ed20d837
 Info: ili2c-5.6.8-e6f7ab6dd5cdba29afc9b24866ecb98c057d82b2
 Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
 Info: java.version 11.0.22
 Info: user.name <stefan>
 Info: maxMemory 524288 KB
-Info: currentTime 2026-09-17 13:37:39
+Info: currentTime 2026-09-17 13:53:08
 Info: resolvePathMap(): pathmap key <%ILI_FROM_DB> (Main.java:1002)
 Info: resolvePathMap(): pathmap key <%XTF_DIR> (Main.java:1002)
 Info: resolvePathMap(): pathmap key <%JAR_DIR> (Main.java:1002)
@@ -65,16 +65,16 @@ Info: Array23.TestA.Datatypes...
 Info: dumpObjHelper(): SELECT r0.T_Id, r0.T_Ili_Tid,r0.auuid,r0.aboolean,r0.atime,r0.adate,r0.adatetime,r0.numericint,r0.numericdec FROM datatypes r0 WHERE r0.T_basket=? (TransferToXtf.java:1111)
 Info: second validation pass...
 Info: validate reference attr Array23.TestA.KatalogRef.Ref...
-Info: close(): LinkPool KEY: size 0, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp8951409672009117573> (BTree.java:396)
+Info: close(): LinkPool KEY: size 0, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp6445452283273577179> (BTree.java:396)
 Info: close(): LinkPool KEY: keySize min 0, max 0 (BTree.java:397)
 Info: close(): LinkPool KEY: valueSize min 0, max 0 (BTree.java:398)
-Info: close(): LinkPool VAL: filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp2459147464466477100> (BTreeImpl.java:78)
+Info: close(): LinkPool VAL: filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp8270874032567390828> (BTreeImpl.java:78)
 Info: close(): LinkPool VAL: valueSize min 0, max 0, updates 0 (BTreeImpl.java:79)
-Info: close(): ObjectPool: filesize 804, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp6711301789500941983> (ObjPoolImpl2.java:69)
-Info: close(): BTree: size 0, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp4378678551242995221> (BTree.java:396)
+Info: close(): ObjectPool: filesize 804, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp937760825635647913> (ObjPoolImpl2.java:69)
+Info: close(): BTree: size 0, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp1969103254811073371> (BTree.java:396)
 Info: close(): BTree: keySize min 0, max 0 (BTree.java:397)
 Info: close(): BTree: valueSize min 0, max 0 (BTree.java:398)
-Info: close(): BTreeImpl VAL: filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp1308457494637371224> (BTreeImpl.java:78)
+Info: close(): BTreeImpl VAL: filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp7653704395954506576> (BTreeImpl.java:78)
 Info: close(): BTreeImpl VAL: valueSize min 0, max 0, updates 0 (BTreeImpl.java:79)
 Info: Array23a-out.xtf: Array23.TestA BID=3
 Info:       2 objects in CLASS Array23.TestA.Auto

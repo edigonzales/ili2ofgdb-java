@@ -720,6 +720,66 @@ task verifyUpstreamCoreUnmodified(type: Exec) {
 		commandLine 'bash', 'tools/check-upstream-drift.sh'
 	}
 }
+
+// ---------------------------------------------------------------------------
+// End to end smoke: run the CLI on a real model/data set and inspect the result.
+// ---------------------------------------------------------------------------
+def ili2ofgdbSmokeRoot = file("$buildDir/smoke/ili2ofgdb")
+def ili2ofgdbSmokeGdb = file("$ili2ofgdbSmokeRoot/abbaustellen.gdb")
+def ili2ofgdbSmokeModelDir = file('ili2ofgdb/test/data/smoke/abbaustellen/models')
+def ili2ofgdbSmokeDataXtf = file('ili2ofgdb/test/data/smoke/abbaustellen/data/ch.so.afu.abbaustellen.relational.xtf')
+
+task ili2ofgdbSmokeSchemaImport(type: JavaExec) {
+	group = 'verification'
+	description = 'Smoke: schema import of the abbaustellen model through the ili2ofgdb CLI.'
+	dependsOn 'ili2ofgdbClasses'
+	doFirst {
+		delete ili2ofgdbSmokeGdb
+		ili2ofgdbSmokeRoot.mkdirs()
+		classpath = configurations.ili2ofgdbRuntimeClasspath + sourceSets.main.output + sourceSets.ili2ofgdb.output
+		main = 'ch.ehi.ili2ofgdb.OfgdbMain'
+		args '--dbfile', ili2ofgdbSmokeGdb.absolutePath,
+			'--defaultSrsCode', '2056',
+			'--strokeArcs',
+			'--nameByTopic',
+			'--modeldir', ili2ofgdbSmokeModelDir.absolutePath,
+			'--models', 'SO_AFU_ABBAUSTELLEN_20210630',
+			'--log', new File(ili2ofgdbSmokeRoot, 'schemaimport.log').absolutePath,
+			'--schemaimport'
+	}
+}
+task ili2ofgdbSmokeImport(type: JavaExec) {
+	group = 'verification'
+	description = 'Smoke: data import of the abbaustellen transfer file through the ili2ofgdb CLI.'
+	dependsOn ili2ofgdbSmokeSchemaImport
+	doFirst {
+		classpath = configurations.ili2ofgdbRuntimeClasspath + sourceSets.main.output + sourceSets.ili2ofgdb.output
+		main = 'ch.ehi.ili2ofgdb.OfgdbMain'
+		args '--dbfile', ili2ofgdbSmokeGdb.absolutePath,
+			'--defaultSrsCode', '2056',
+			'--strokeArcs',
+			'--nameByTopic',
+			'--modeldir', ili2ofgdbSmokeModelDir.absolutePath,
+			'--models', 'SO_AFU_ABBAUSTELLEN_20210630',
+			'--log', new File(ili2ofgdbSmokeRoot, 'import.log').absolutePath,
+			'--import', ili2ofgdbSmokeDataXtf.absolutePath
+	}
+}
+task ili2ofgdbSmokeVerify(type: JavaExec) {
+	group = 'verification'
+	description = 'Smoke: verifies domains, relationship classes and geometries of the smoke database.'
+	dependsOn(ili2ofgdbSmokeImport, 'compileIli2ofgdbTestJava')
+	doFirst {
+		classpath = configurations.ili2ofgdbRuntimeClasspath + sourceSets.main.output + sourceSets.ili2ofgdb.output + sourceSets.ili2ofgdbTest.output
+		main = 'ch.ehi.ili2ofgdb.SmokeInspector'
+		args ili2ofgdbSmokeGdb.absolutePath
+	}
+}
+task ili2ofgdbSmoke {
+	group = 'verification'
+	description = 'Runs the complete ili2ofgdb smoke pipeline.'
+	dependsOn ili2ofgdbSmokeVerify
+}
 task ili2mssqlJar(dependsOn: jar,type: Jar) {
 	baseName = 'ili2mssql'
     from sourceSets.ili2mssql.output

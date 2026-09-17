@@ -4,7 +4,7 @@ Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
 Info: java.version 11.0.22
 Info: user.name <stefan>
 Info: maxMemory 524288 KB
-Info: currentTime 2026-09-17 13:51:10
+Info: currentTime 2026-09-17 13:51:17
 Info: dburl <jdbc:ili2ofgdb:build/test-ofgdb/EnumAll23OfgdbTest.gdb>
 Info: dbusr <>
 Info: databaseProduct <ESRI FileGDB API>
@@ -15,6 +15,4 @@ Info: max active DB statements <0>
 Info: compile models...
 Info: ilifile <test/data/Enum23/EnumAll23.ili>
 Info: create table structure, if not existing...
-Warning: ili2ofgdb: skip domain EnumAll23_Enum2; coded values do not fit SQL type INTEGER
-Warning: ili2ofgdb: skip domain EnumAll23_Enum2a; coded values do not fit SQL type INTEGER
-Warning: ili2ofgdb: skip domain EnumAll23_Enum2b; coded values do not fit SQL type INTEGER
+Info: ...done

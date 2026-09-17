@@ -1,10 +1,10 @@
-Info: ili2ofgdb-5.5.3-SNAPSHOT-66b1aa48cfe69e94a0e31bfa7e04a0618d78e115
+Info: ili2ofgdb-5.5.3-SNAPSHOT-f735840ca50cb1566489f1597a016845f176bf0d
 Info: ili2c-5.6.8-e6f7ab6dd5cdba29afc9b24866ecb98c057d82b2
 Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
 Info: java.version 11.0.22
 Info: user.name <stefan>
 Info: maxMemory 524288 KB
-Info: currentTime 2026-09-17 13:31:41
+Info: currentTime 2026-09-17 13:51:24
 Info: resolvePathMap(): pathmap key <%ILI_FROM_DB> (Main.java:1002)
 Info: resolvePathMap(): pathmap key <%XTF_DIR> (Main.java:1002)
 Info: resolvePathMap(): pathmap key <%JAR_DIR> (Main.java:1002)
@@ -97,12 +97,12 @@ Info: doit(): ...EndTransferEvent done (TransferFromXtf.java:729)
 Info: object count 3
 Info: doitEnd(): write delayed objects (0)... (TransferFromXtf.java:758)
 Info: second validation pass...
-Info: close(): LinkPool KEY: size 0, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp5316436472815844321> (BTree.java:396)
+Info: close(): LinkPool KEY: size 0, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp4508538390799004057> (BTree.java:396)
 Info: close(): LinkPool KEY: keySize min 0, max 0 (BTree.java:397)
 Info: close(): LinkPool KEY: valueSize min 0, max 0 (BTree.java:398)
-Info: close(): LinkPool VAL: filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp728199920887371265> (BTreeImpl.java:78)
+Info: close(): LinkPool VAL: filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp2335359035618056065> (BTreeImpl.java:78)
 Info: close(): LinkPool VAL: valueSize min 0, max 0, updates 0 (BTreeImpl.java:79)
-Info: close(): ObjectPool: filesize 252, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp423748077243031344> (ObjPoolImpl2.java:69)
+Info: close(): ObjectPool: filesize 252, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp5564270418158683770> (ObjPoolImpl2.java:69)
 Info: ExpandStruct24a.xtf: ExpandStruct24.TestA BID=ExpandStruct24.TestA
 Info:       3 objects in CLASS ExpandStruct24.TestA.Auto
 Info: ...import done

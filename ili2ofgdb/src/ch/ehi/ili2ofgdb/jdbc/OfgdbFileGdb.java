@@ -172,14 +172,27 @@ public final class OfgdbFileGdb implements AutoCloseable {
 
     private void refreshTables() throws SQLException {
         try {
-            catalog = GdbCatalog.open(directory);
             knownTables.clear();
-            for (Dataset dataset : catalog.datasets()) {
-                knownTables.put(dataset.name(), dataset.name());
+            GdbCatalog nameCatalog = GdbCatalog.open(directory);
+            for (String name : nameCatalog.tableNames()) {
+                knownTables.put(name, name);
             }
+            catalog = null;
         } catch (IOException e) {
             throw new SQLException("failed to read file geodatabase catalog", e);
         }
+    }
+
+    /** Opens the full catalog (definitions, CRS, domains) lazily. */
+    private GdbCatalog catalog() throws SQLException {
+        if (catalog == null) {
+            try {
+                catalog = GdbCatalog.open(directory);
+            } catch (IOException e) {
+                throw new SQLException("failed to read file geodatabase catalog", e);
+            }
+        }
+        return catalog;
     }
 
     public synchronized ColumnInfo[] columns(String tableName) throws SQLException {
@@ -218,7 +231,11 @@ public final class OfgdbFileGdb implements AutoCloseable {
 
     private Dataset datasetOf(String tableName) {
         if (catalog == null) {
-            return null;
+            try {
+                catalog = GdbCatalog.open(directory);
+            } catch (IOException e) {
+                return null;
+            }
         }
         java.util.Optional<Dataset> dataset = catalog.dataset(tableName);
         return dataset.isPresent() ? dataset.get() : null;
@@ -389,7 +406,7 @@ public final class OfgdbFileGdb implements AutoCloseable {
                 writers.put(tableName, new TableWriter(null, writer));
             }
             catalog = null;
-            refreshTables();
+            knownTables.put(tableName, tableName);
         } catch (IOException | RuntimeException e) {
             throw new SQLException("failed to create table " + tableName, e);
         }

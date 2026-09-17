@@ -1,0 +1,18 @@
+INTERLIS 2.3;
+
+MODEL OfgdbAliasDomainTest
+  AT "mailto:test@example.org" VERSION "2026-02-20" =
+
+  DOMAIN
+    EnumBase = (One, Two);
+    EnumAlias = MANDATORY EnumBase;
+    BoolAlias = MANDATORY BOOLEAN;
+
+  TOPIC T =
+    CLASS C =
+      enumAliasAttr : EnumAlias;
+      boolAliasAttr : BoolAlias;
+    END C;
+  END T;
+
+END OfgdbAliasDomainTest.

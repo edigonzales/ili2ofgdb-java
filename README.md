@@ -81,12 +81,27 @@ conda activate gdal
 ./gradlew ili2ofgdbTest -PgdalPrefix=/opt/miniconda3/envs/gdal
 ```
 
-The end to end smoke (CLI schema import, data import and catalog/geometry inspection of a real
-model) runs with:
+The end to end smoke builds the **packaged bindist** (jar, libraries, documentation), runs the CLI
+from it (`java -jar`, so the manifest class path is exercised too) for the schema import, the data
+import and an export, and then verifies the geodatabase and the exported transfer file (exact
+object counts, domains, relationship class, CRS) — plus an independent `ogrinfo` check whenever GDAL
+is available:
 
 ```bash
 ./gradlew ili2ofgdbSmoke
+# mandatory GDAL verification:
+./gradlew ili2ofgdbSmoke -PgdalPrefix=/opt/miniconda3/envs/gdal -PrequireGdal=true
+# smoke a downloaded/published bindist:
+./gradlew ili2ofgdbSmoke -PbindistZip=/path/to/ili2ofgdb-5.5.3-SNAPSHOT-bindist.zip
 ```
+
+## Publishing
+
+The snapshot of the jar and the bindist is published to
+`https://jars.interlis.guru/snapshots` (`ch.interlis:ili2ofgdb:5.5.3-SNAPSHOT`, bindist with
+classifier `bindist`). The workflow `publish-ili2ofgdb.yml` runs after the main workflow succeeded
+on `main`, builds the bindist with the user documentation, uploads it with
+`uploadIli2ofgdbArchives` and finally downloads the published bindist and runs the smoke against it.
 
 The imported ili2db core is protected against accidental changes:
 

@@ -34,7 +34,7 @@ jobs:
         shell: bash
         run: ./gradlew --no-daemon --refresh-dependencies -x usrdoc ili2ofgdbTest
 
-      - name: Smoke (CLI schema import, import, inspection)
+      - name: Smoke (packaged bindist, schema import, import, export, inspection, GDAL if available)
         shell: bash
         run: ./gradlew --no-daemon -x usrdoc ili2ofgdbSmoke
 
@@ -65,6 +65,10 @@ jobs:
       - name: Tests with mandatory GDAL interop checks
         shell: bash -el {0}
         run: ./gradlew --no-daemon --refresh-dependencies -x usrdoc ili2ofgdbTest -PgdalPrefix="$CONDA_PREFIX" -PrequireGdal=true
+
+      - name: Smoke with mandatory GDAL verification
+        shell: bash -el {0}
+        run: ./gradlew --no-daemon -x usrdoc ili2ofgdbSmoke -PgdalPrefix="$CONDA_PREFIX" -PrequireGdal=true
 
   upstream-drift:
     name: upstream-drift

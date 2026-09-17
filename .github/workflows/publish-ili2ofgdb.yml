@@ -1,0 +1,130 @@
+name: publish-ili2ofgdb
+
+# Publishes the ili2ofgdb snapshot (jar and bindist) to jars.interlis.guru/snapshots.
+# The workflow runs after the main workflow succeeded on main, so that only verified revisions are
+# published; workflow_dispatch allows a manual run (for example a re-publish).
+on:
+  workflow_run:
+    workflows:
+      - ili2ofgdb-java
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-ili2ofgdb
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish bindist snapshot
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      MAVEN_REPOS_URL: https://jars.interlis.guru/snapshots/
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Set up Java 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '11'
+
+      - name: Install docutils (rst2html for the user documentation in the bindist)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq python3-docutils
+          if ! command -v rst2html >/dev/null; then
+            sudo ln -s "$(command -v rst2html.py)" /usr/local/bin/rst2html
+          fi
+          rst2html --version
+
+      - name: Build the bindist (jar, libs, documentation)
+        run: ./gradlew --no-daemon ili2ofgdbBindist
+
+      - name: Verify the bindist content
+        run: |
+          set -euo pipefail
+          zip="$(ls dist/ili2ofgdb-*.zip)"
+          echo "bindist: $zip"
+          python3 - "$zip" <<'PY'
+          import sys, zipfile
+          zip_path = sys.argv[1]
+          names = zipfile.ZipFile(zip_path).namelist()
+          def has(predicate):
+              return any(predicate(name) for name in names)
+          checks = {
+              "flavor jar": has(lambda n: n.startswith("ili2ofgdb-") and n.endswith(".jar")
+                                 and "/" not in n),
+              "core jar": has(lambda n: n.startswith("libs/ili2db-") and n.endswith(".jar")),
+              "filegdb4j": has(lambda n: n.startswith("libs/filegdb4j-core-") and n.endswith(".jar")),
+              "documentation": has(lambda n: n == "docs/ili2db.html"),
+          }
+          for name, ok in checks.items():
+              print(("OK   " if ok else "MISS ") + name)
+          missing = [name for name, ok in checks.items() if not ok]
+          if missing:
+              raise SystemExit("bindist is incomplete: " + ", ".join(missing))
+          PY
+
+      - name: Publish snapshot
+        run: |
+          set -euo pipefail
+          test -n "${{ secrets.INTERLIS_MAVEN_USERNAME }}"
+          test -n "${{ secrets.INTERLIS_MAVEN_TOKEN }}"
+          ./gradlew --no-daemon uploadIli2ofgdbArchives \
+            -Drepos_url="$MAVEN_REPOS_URL" \
+            -Drepos_usr="${{ secrets.INTERLIS_MAVEN_USERNAME }}" \
+            -Drepos_pwd="${{ secrets.INTERLIS_MAVEN_TOKEN }}"
+
+      - name: Set up independent GDAL reference
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-name: gdal-reference
+          create-args: >-
+            python=3.12
+            gdal=3.12
+          cache-environment: true
+
+      - name: Verify the published bindist (download, smoke, GDAL)
+        shell: micromamba-shell {0}
+        run: |
+          set -euo pipefail
+          ogrinfo --version
+          python3 - <<'PY'
+          import os, urllib.request, xml.etree.ElementTree as ET
+          base = os.environ["MAVEN_REPOS_URL"].rstrip("/") + "/ch/interlis/ili2ofgdb/5.5.3-SNAPSHOT"
+          root = ET.fromstring(urllib.request.urlopen(base + "/maven-metadata.xml").read())
+          def text(node, name):
+              for child in node:
+                  if child.tag.split("}")[-1] == name:
+                      return child.text
+              return None
+          versions = {}
+          for node in root.iter():
+              if node.tag.split("}")[-1] != "snapshotVersion":
+                  continue
+              versions[(text(node, "classifier") or "", text(node, "extension"))] = text(node, "value")
+          jar = versions[("", "jar")]
+          snapshot = versions[("bindist", "zip")]
+          bindist = base + "/ili2ofgdb-" + snapshot + "-bindist.zip"
+          print("published snapshot:", snapshot)
+          print("published jar:", base + "/ili2ofgdb-" + jar + ".jar")
+          urllib.request.urlretrieve(bindist, "/tmp/published-bindist.zip")
+          PY
+          ls -l /tmp/published-bindist.zip
+          ./gradlew --no-daemon -x usrdoc ili2ofgdbSmoke \
+            -PbindistZip=/tmp/published-bindist.zip \
+            -PgdalPrefix="$CONDA_PREFIX" -PrequireGdal=true

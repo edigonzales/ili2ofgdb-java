@@ -725,23 +725,42 @@ task verifyUpstreamCoreUnmodified(type: Exec) {
 }
 
 // ---------------------------------------------------------------------------
-// End to end smoke: run the CLI on a real model/data set and inspect the result.
+// End to end smoke: run the packaged CLI (bindist jar) on a real model/data set,
+// inspect the result and export it again.
 // ---------------------------------------------------------------------------
 def ili2ofgdbSmokeRoot = file("$buildDir/smoke/ili2ofgdb")
 def ili2ofgdbSmokeGdb = file("$ili2ofgdbSmokeRoot/abbaustellen.gdb")
+def ili2ofgdbSmokeExportXtf = file("$ili2ofgdbSmokeRoot/export.xtf")
 def ili2ofgdbSmokeModelDir = file('ili2ofgdb/test/data/smoke/abbaustellen/models')
 def ili2ofgdbSmokeDataXtf = file('ili2ofgdb/test/data/smoke/abbaustellen/data/ch.so.afu.abbaustellen.relational.xtf')
+def ili2ofgdbSmokeBindistDir = file("$buildDir/smoke/ili2ofgdb-bindist")
+def ili2ofgdbSmokeBindistZip = project.hasProperty('bindistZip')
+		? file(project.property('bindistZip'))
+		: ili2ofgdbBindist.archivePath
+def ili2ofgdbSmokeJava = new File(System.properties['java.home'],
+		'bin/java' + (System.properties['os.name'].toLowerCase().contains('windows') ? '.exe' : ''))
+def ili2ofgdbSmokeJar = new File(ili2ofgdbSmokeBindistDir, 'ili2ofgdb-' + project.version + '.jar')
 
-task ili2ofgdbSmokeSchemaImport(type: JavaExec) {
+task ili2ofgdbSmokeBindist(type: Sync) {
 	group = 'verification'
-	description = 'Smoke: schema import of the abbaustellen model through the ili2ofgdb CLI.'
-	dependsOn 'ili2ofgdbClasses'
+	description = 'Smoke: unpacks the packaged ili2ofgdb bindist (jar, libs, docs).'
+	if (!project.hasProperty('bindistZip')) {
+		dependsOn ili2ofgdbBindist
+	}
+	from zipTree(ili2ofgdbSmokeBindistZip)
+	into ili2ofgdbSmokeBindistDir
+}
+task ili2ofgdbSmokeSchemaImport(type: Exec) {
+	group = 'verification'
+	description = 'Smoke: schema import of the abbaustellen model through the packaged ili2ofgdb CLI.'
+	dependsOn ili2ofgdbSmokeBindist
 	doFirst {
 		delete ili2ofgdbSmokeGdb
 		ili2ofgdbSmokeRoot.mkdirs()
-		classpath = configurations.ili2ofgdbRuntimeClasspath + sourceSets.main.output + sourceSets.ili2ofgdb.output
-		main = 'ch.ehi.ili2ofgdb.OfgdbMain'
-		args '--dbfile', ili2ofgdbSmokeGdb.absolutePath,
+		workingDir = ili2ofgdbSmokeBindistDir
+		executable = ili2ofgdbSmokeJava
+		args '-jar', ili2ofgdbSmokeJar.absolutePath,
+			'--dbfile', ili2ofgdbSmokeGdb.absolutePath,
 			'--defaultSrsCode', '2056',
 			'--strokeArcs',
 			'--nameByTopic',
@@ -751,14 +770,15 @@ task ili2ofgdbSmokeSchemaImport(type: JavaExec) {
 			'--schemaimport'
 	}
 }
-task ili2ofgdbSmokeImport(type: JavaExec) {
+task ili2ofgdbSmokeImport(type: Exec) {
 	group = 'verification'
-	description = 'Smoke: data import of the abbaustellen transfer file through the ili2ofgdb CLI.'
+	description = 'Smoke: data import of the abbaustellen transfer file through the packaged ili2ofgdb CLI.'
 	dependsOn ili2ofgdbSmokeSchemaImport
 	doFirst {
-		classpath = configurations.ili2ofgdbRuntimeClasspath + sourceSets.main.output + sourceSets.ili2ofgdb.output
-		main = 'ch.ehi.ili2ofgdb.OfgdbMain'
-		args '--dbfile', ili2ofgdbSmokeGdb.absolutePath,
+		workingDir = ili2ofgdbSmokeBindistDir
+		executable = ili2ofgdbSmokeJava
+		args '-jar', ili2ofgdbSmokeJar.absolutePath,
+			'--dbfile', ili2ofgdbSmokeGdb.absolutePath,
 			'--defaultSrsCode', '2056',
 			'--strokeArcs',
 			'--nameByTopic',
@@ -768,19 +788,40 @@ task ili2ofgdbSmokeImport(type: JavaExec) {
 			'--import', ili2ofgdbSmokeDataXtf.absolutePath
 	}
 }
+task ili2ofgdbSmokeExport(type: Exec) {
+	group = 'verification'
+	description = 'Smoke: export of the smoke database through the packaged ili2ofgdb CLI.'
+	dependsOn ili2ofgdbSmokeImport
+	doFirst {
+		delete ili2ofgdbSmokeExportXtf
+		workingDir = ili2ofgdbSmokeBindistDir
+		executable = ili2ofgdbSmokeJava
+		args '-jar', ili2ofgdbSmokeJar.absolutePath,
+			'--dbfile', ili2ofgdbSmokeGdb.absolutePath,
+			'--models', 'SO_AFU_ABBAUSTELLEN_20210630',
+			'--log', new File(ili2ofgdbSmokeRoot, 'export.log').absolutePath,
+			'--export', ili2ofgdbSmokeExportXtf.absolutePath
+	}
+}
 task ili2ofgdbSmokeVerify(type: JavaExec) {
 	group = 'verification'
-	description = 'Smoke: verifies domains, relationship classes and geometries of the smoke database.'
-	dependsOn(ili2ofgdbSmokeImport, 'compileIli2ofgdbTestJava')
+	description = 'Smoke: verifies domains, relationship classes, geometries and the export of the smoke database.'
+	dependsOn(ili2ofgdbSmokeExport, 'compileIli2ofgdbTestJava')
 	doFirst {
 		classpath = configurations.ili2ofgdbRuntimeClasspath + sourceSets.main.output + sourceSets.ili2ofgdb.output + sourceSets.ili2ofgdbTest.output
 		main = 'ch.ehi.ili2ofgdb.SmokeInspector'
-		args ili2ofgdbSmokeGdb.absolutePath
+		args ili2ofgdbSmokeGdb.absolutePath, ili2ofgdbSmokeExportXtf.absolutePath
+		if (project.hasProperty('gdalPrefix')) {
+			jvmArgs "-Dgdal.prefix=${project.property('gdalPrefix')}"
+		}
+		if (project.hasProperty('requireGdal')) {
+			jvmArgs "-Dofgdb.requireGdal=${project.property('requireGdal')}"
+		}
 	}
 }
 task ili2ofgdbSmoke {
 	group = 'verification'
-	description = 'Runs the complete ili2ofgdb smoke pipeline.'
+	description = 'Runs the complete ili2ofgdb smoke pipeline (packaged bindist, GDAL check if available).'
 	dependsOn ili2ofgdbSmokeVerify
 }
 task ili2mssqlJar(dependsOn: jar,type: Jar) {
@@ -866,6 +907,7 @@ test {
 
 configurations {
     antClasspath
+    ili2ofgdbArchives
 }
 
 dependencies {
@@ -965,6 +1007,24 @@ artifacts {
     archives(ili2oraJar.archivePath){
     	builtBy ili2oraJar
     }
+	archives(ili2ofgdbBindist.archivePath) {
+        type 'zip'
+        classifier 'bindist'
+        builtBy ili2ofgdbBindist
+    }
+    archives(ili2ofgdbJar.archivePath){
+    	builtBy ili2ofgdbJar
+    }
+    // dedicated artifact set for the snapshot publication (jar and bindist only), so that the
+    // publish task does not build the artifacts of the other flavours
+    ili2ofgdbArchives(ili2ofgdbJar.archivePath) {
+    	builtBy ili2ofgdbJar
+    }
+	ili2ofgdbArchives(ili2ofgdbBindist.archivePath) {
+        type 'zip'
+        classifier 'bindist'
+        builtBy ili2ofgdbBindist
+    }
 }
 
 install {
@@ -996,6 +1056,9 @@ install {
             }            
             addFilter('ili2ora') {artifact, file ->
                 artifact.name == 'ili2ora'
+            }
+            addFilter('ili2ofgdb') {artifact, file ->
+                artifact.name == 'ili2ofgdb'
             }            
             pom('ili2db').artifactId = 'ili2db'
             pom('ili2db').scopeMappings.with {
@@ -1048,6 +1111,12 @@ install {
             pom('ili2ora').scopeMappings.with {
                 mappings.clear()
                 addMapping(300, configurations.ili2oraCompileClasspath, 'runtime')
+                addMapping(300, configurations.ili2db, 'compile')
+            }
+            pom('ili2ofgdb').artifactId = 'ili2ofgdb'
+            pom('ili2ofgdb').scopeMappings.with {
+                mappings.clear()
+                addMapping(300, configurations.ili2ofgdbCompileClasspath, 'runtime')
                 addMapping(300, configurations.ili2db, 'compile')
             }
     	}
@@ -1087,6 +1156,9 @@ uploadArchives {
             }            
             addFilter('ili2ora') {artifact, file ->
                 artifact.name == 'ili2ora'
+            }
+            addFilter('ili2ofgdb') {artifact, file ->
+                artifact.name == 'ili2ofgdb'
             } 
             pom('ili2db').artifactId = 'ili2db'
             pom('ili2db').scopeMappings.with {
@@ -1139,6 +1211,37 @@ uploadArchives {
             pom('ili2ora').scopeMappings.with {
                 mappings.clear()
                 addMapping(300, configurations.ili2oraCompileClasspath, 'runtime')
+                addMapping(300, configurations.ili2db, 'compile')
+            }
+            pom('ili2ofgdb').artifactId = 'ili2ofgdb'
+            pom('ili2ofgdb').scopeMappings.with {
+                mappings.clear()
+                addMapping(300, configurations.ili2ofgdbCompileClasspath, 'runtime')
+                addMapping(300, configurations.ili2db, 'compile')
+            }
+        }
+    }
+}
+
+// Publishes only the ili2ofgdb artifacts (jar and bindist zip) to the repository given by
+// -Drepos_url. Used by the snapshot CI, so that the other flavours are not published there.
+task uploadIli2ofgdbArchives(type: Upload) {
+    group = 'publishing'
+    description = 'Uploads the ili2ofgdb jar and bindist (only) to the repository given by -Drepos_url.'
+    configuration = configurations.ili2ofgdbArchives
+    repositories {
+        mavenDeployer {
+            configuration = configurations.deployerJars
+            repository(url: repos_url){
+                authentication(userName: repos_usr, password: repos_pwd)
+            }
+            addFilter('ili2ofgdb') {artifact, file ->
+                artifact.name == 'ili2ofgdb'
+            }
+            pom('ili2ofgdb').artifactId = 'ili2ofgdb'
+            pom('ili2ofgdb').scopeMappings.with {
+                mappings.clear()
+                addMapping(300, configurations.ili2ofgdbCompileClasspath, 'runtime')
                 addMapping(300, configurations.ili2db, 'compile')
             }
         }

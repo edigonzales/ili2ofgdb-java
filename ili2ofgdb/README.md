@@ -44,7 +44,9 @@ Flavour specific switches:
 ## Tests
 
 * `ili2ofgdb/test/java` – the FGDB contract tests (subclasses of the shared abstract tests) and the
-  FGDB specific tests (mapping, JDBC, domain scripts, XY precision, geometry, interop).
+  FGDB specific tests (mapping, JDBC, domain scripts, XY precision, geometry, interop); the smoke
+  inspector additionally verifies the packaged bindist end to end (CLI import/export, GDAL cross
+  check).
 * `ili2ofgdb/test/data` – flavour specific test data (relationship/range mapping model, mandatory
   checks model, smoke data).
 

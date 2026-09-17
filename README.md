@@ -47,6 +47,18 @@ Genuine backend differences are documented as capability flags in the shared tes
 indexes and cannot collect offline DDL scripts. The corresponding contract tests skip themselves
 with a reason instead of being silently replaced.
 
+## Features
+
+* **CRS**: feature classes carry the WKID and, when available, the full WKT of the EPSG code
+  (bundled resource for common codes, extensible with `--fgdbWktDir <dir>` containing `<epsg>.wkt`
+  files).
+* **Spatial index**: `--createGeomIdx` builds the native `.spx` index of the file geodatabase.
+* **Domains**: INTERLIS enumerations, booleans and numeric ranges are written as coded/range
+  domains (`--fgdbCreateDomains`).
+* **Relationship classes**: 1:1, 1:n and n:m relationships are written as relationship classes;
+  n:m relationships are bound to the association table created by ili2db and keep their attribute
+  columns (`IsAttributed`).
+
 ## Build
 
 ```bash

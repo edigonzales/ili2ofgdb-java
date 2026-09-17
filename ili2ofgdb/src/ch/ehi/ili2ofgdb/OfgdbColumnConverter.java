@@ -61,6 +61,32 @@ public class OfgdbColumnConverter extends AbstractWKBColumnConverter {
 		return OfgdbStrokeZSanitizer.sanitizeNaNZToZero(wkb);
 	}
 
+	static ch.interlis.iom.IomObject asMultiPolyline(ch.interlis.iom.IomObject object) {
+		if (object == null || ch.interlis.iom_j.Iom_jObject.MULTIPOLYLINE.equals(object.getobjecttag())) {
+			return object;
+		}
+		if (ch.interlis.iom_j.Iom_jObject.POLYLINE.equals(object.getobjecttag())) {
+			ch.interlis.iom.IomObject multi =
+					new ch.interlis.iom_j.Iom_jObject(ch.interlis.iom_j.Iom_jObject.MULTIPOLYLINE, null);
+			multi.addattrobj(ch.interlis.iom_j.Iom_jObject.MULTIPOLYLINE_POLYLINE, object);
+			return multi;
+		}
+		return object;
+	}
+
+	static ch.interlis.iom.IomObject asMultiSurface(ch.interlis.iom.IomObject object) {
+		if (object == null || ch.interlis.iom_j.Iom_jObject.MULTISURFACE.equals(object.getobjecttag())) {
+			return object;
+		}
+		if (ch.interlis.iom_j.Iom_jObject.SURFACE.equals(object.getobjecttag())) {
+			ch.interlis.iom.IomObject multi =
+					new ch.interlis.iom_j.Iom_jObject(ch.interlis.iom_j.Iom_jObject.MULTISURFACE, null);
+			multi.addattrobj(ch.interlis.iom_j.Iom_jObject.MULTISURFACE_SURFACE, object);
+			return multi;
+		}
+		return object;
+	}
+
 	private byte[] asBytes(Object value, String sqlAttrName) throws ConverterException {
 		if(value==null) {
 			return null;
@@ -326,7 +352,7 @@ public class OfgdbColumnConverter extends AbstractWKBColumnConverter {
 			}
 			OfgdbWkb2iox conv=new OfgdbWkb2iox();
 			try {
-				return conv.read(bv);
+				return asMultiSurface(conv.read(bv));
 			} catch (ParseException e) {
 				throw new ConverterException(e);
 			}
@@ -360,7 +386,7 @@ public class OfgdbColumnConverter extends AbstractWKBColumnConverter {
 			}
 			OfgdbWkb2iox conv=new OfgdbWkb2iox();
 			try {
-				return conv.read(bv);
+				return asMultiPolyline(conv.read(bv));
 			} catch (ParseException e) {
 				throw new ConverterException(e);
 			}

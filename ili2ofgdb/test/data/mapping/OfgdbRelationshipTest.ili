@@ -14,8 +14,8 @@ MODEL OfgdbRelationshipTest
     END B;
 
     ASSOCIATION AtoB =
-      aRole -- {0,1} A;
-      bRole -- {0,*} B;
+      aRole -- {0..1} A;
+      bRole -- {0..*} B;
     END AtoB;
 
     ASSOCIATION OneToOne =

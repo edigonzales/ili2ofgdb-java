@@ -4,7 +4,7 @@ Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
 Info: java.version 11.0.22
 Info: user.name <stefan>
 Info: maxMemory 524288 KB
-Info: currentTime 2026-09-17 12:40:40
+Info: currentTime 2026-09-17 13:34:20
 Info: resolvePathMap(): pathmap key <%ILI_FROM_DB> (Main.java:1002)
 Info: resolvePathMap(): pathmap key <%XTF_DIR> (Main.java:1002)
 Info: resolvePathMap(): pathmap key <%JAR_DIR> (Main.java:1002)
@@ -169,12 +169,12 @@ Info: validate reference attr Assoc1.Test.StructA2.refa2...
 Info: validate target of role Assoc1.Test.a2b2.a2...
 Info: validate multiplicity of role Assoc1.Test.a2b2.a2...
 Info: validate multiplicity of role Assoc1.Test.a2b3.a3...
-Info: close(): LinkPool KEY: size 8, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp7735547384808020130> (BTree.java:396)
+Info: close(): LinkPool KEY: size 8, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp7278305017274017588> (BTree.java:396)
 Info: close(): LinkPool KEY: keySize min 0, max 0 (BTree.java:397)
 Info: close(): LinkPool KEY: valueSize min 0, max 0 (BTree.java:398)
-Info: close(): LinkPool VAL: filesize 96 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp7672950269580504559> (BTreeImpl.java:78)
+Info: close(): LinkPool VAL: filesize 96 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp2060825456930208106> (BTreeImpl.java:78)
 Info: close(): LinkPool VAL: valueSize min 0, max 8, updates 1 (BTreeImpl.java:79)
-Info: close(): ObjectPool: filesize 495, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp7823081951828522789> (ObjPoolImpl2.java:69)
+Info: close(): ObjectPool: filesize 495, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp3763965325029318413> (ObjPoolImpl2.java:69)
 Warning: ili2ofgdb: skip many-to-many relationship class Assoc1.Test.a2b1; the association table already carries the mapping
 Warning: ili2ofgdb: skip many-to-many relationship class Assoc1.Test.a2b1; the association table already carries the mapping
 Info: Assoc1a.xtf: Assoc1.Test BID=Assoc1.Test

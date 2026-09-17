@@ -4,7 +4,7 @@ Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
 Info: java.version 11.0.22
 Info: user.name <stefan>
 Info: maxMemory 524288 KB
-Info: currentTime 2026-09-17 12:40:54
+Info: currentTime 2026-09-17 13:34:34
 Info: resolvePathMap(): pathmap key <%ILI_FROM_DB> (Main.java:1002)
 Info: resolvePathMap(): pathmap key <%XTF_DIR> (Main.java:1002)
 Info: resolvePathMap(): pathmap key <%JAR_DIR> (Main.java:1002)
@@ -76,13 +76,13 @@ Info: validate target of role AssocNtoN_Extended.Konstruktionen.Gebaeude_Besitze
 Info: validate multiplicity of role AssocNtoN_Extended.Konstruktionen.Gebaeude_BesitzerIn.BesitzerIn...
 Info: validate multiplicity of role AssocNtoN_Extended.Konstruktionen.Gebaeude_BesitzerIn.Gebaeude...
 Info: validate target of role AssocNtoN_Extended.Konstruktionen.Gebaeude_BesitzerIn.BesitzerIn...
-Info: close(): LinkPool KEY: size 4, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp5157740216756944241> (BTree.java:396)
+Info: close(): LinkPool KEY: size 4, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp2778335554607917181> (BTree.java:396)
 Info: close(): LinkPool KEY: keySize min 0, max 0 (BTree.java:397)
 Info: close(): LinkPool KEY: valueSize min 0, max 0 (BTree.java:398)
-Info: close(): LinkPool VAL: filesize 48 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp8283514261040032164> (BTreeImpl.java:78)
+Info: close(): LinkPool VAL: filesize 48 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp2145333962353442110> (BTreeImpl.java:78)
 Info: close(): LinkPool VAL: valueSize min 0, max 8, updates 0 (BTreeImpl.java:79)
-Info: close(): ObjectPool: filesize 178, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp5993608501877095441> (ObjPoolImpl2.java:69)
-Info: close(): ObjectPool: filesize 176, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp1986471073054005253> (ObjPoolImpl2.java:69)
+Info: close(): ObjectPool: filesize 178, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp6649689051645764367> (ObjPoolImpl2.java:69)
+Info: close(): ObjectPool: filesize 176, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp8717581432477355319> (ObjPoolImpl2.java:69)
 Info: AssocNtoN_Extended.xtf: AssocNtoN_Extended.ExtendedKonst BID=AssocNtoN_Extended.ExtendedKonst
 Info:       1 objects in CLASS AssocNtoN_Extended.ExtendedKonst.Gebaeude_BesitzerIn
 Info:       1 objects in CLASS AssocNtoN_Extended.Konstruktionen.BesitzerIn

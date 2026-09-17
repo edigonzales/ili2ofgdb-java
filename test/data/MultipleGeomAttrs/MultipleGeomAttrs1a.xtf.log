@@ -4,7 +4,7 @@ Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
 Info: java.version 11.0.22
 Info: user.name <stefan>
 Info: maxMemory 524288 KB
-Info: currentTime 2026-09-17 12:40:00
+Info: currentTime 2026-09-17 13:33:36
 Info: dburl <jdbc:ili2ofgdb:build/test-ofgdb/MultipleGeomAttrsOfgdbTest.gdb>
 Info: dbusr <>
 Info: databaseProduct <ESRI FileGDB API>
@@ -21,4 +21,8 @@ Info: assume unknown external objects
 Info: data <test/data/MultipleGeomAttrs/MultipleGeomAttrs1a.xtf>
 Info: first validation pass...
 Info: Basket MultipleGeomAttrs1.Topic(oid b1)...
-Error: Coordinate outside FileGDB precision domain: NaN
+Info: object count 1
+Info: second validation pass...
+Info: MultipleGeomAttrs1a.xtf: MultipleGeomAttrs1.Topic BID=b1
+Info:       1 objects in CLASS MultipleGeomAttrs1.Topic.ClassA
+Info: ...import done

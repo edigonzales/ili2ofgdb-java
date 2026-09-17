@@ -4,7 +4,7 @@ Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
 Info: java.version 11.0.22
 Info: user.name <stefan>
 Info: maxMemory 524288 KB
-Info: currentTime 2026-09-17 12:40:29
+Info: currentTime 2026-09-17 13:34:08
 Info: resolvePathMap(): pathmap key <%ILI_FROM_DB> (Main.java:1002)
 Info: resolvePathMap(): pathmap key <%XTF_DIR> (Main.java:1002)
 Info: resolvePathMap(): pathmap key <%JAR_DIR> (Main.java:1002)
@@ -59,8 +59,8 @@ Info: dumpStructs(): SELECT r0.T_Id, r0.T_Type, r0.T_Seq FROM (SELECT r1.T_Id,'s
 Info: dumpObjHelper(): SELECT r0.T_Id, r0.classb2_stra2, r0.T_Seq,r0.refa2 FROM structa2 r0 WHERE r0.classb2_stra2=? ORDER BY r0.T_Seq ASC (TransferToXtf.java:1111)
 Info: Assoc2.TestB.ClassA3...
 Info: dumpObjHelper(): SELECT r0.T_Id, r0.T_Ili_Tid,r0.b3 FROM classa3 r0 WHERE r0.T_basket=? (TransferToXtf.java:1111)
-Info: readObjectTid(): SELECT T_Id,T_Ili_Tid,T_Type FROM (SELECT r1.T_Id, r1.T_Ili_Tid, 'classb1' T_Type FROM classb1 r1) r0 WHERE r0.T_Id=? (TransferToXtf.java:690)
 Info: readObjectTid(): SELECT T_Id,T_Ili_Tid,T_Type FROM (SELECT r1.T_Id, r1.T_Ili_Tid, 'classa1' T_Type FROM classa1 r1 UNION SELECT r2.T_Id, r2.T_Ili_Tid, 'classa1b' T_Type FROM classa1b r2) r0 WHERE r0.T_Id=? (TransferToXtf.java:690)
+Info: readObjectTid(): SELECT T_Id,T_Ili_Tid,T_Type FROM (SELECT r1.T_Id, r1.T_Ili_Tid, 'classb1' T_Type FROM classb1 r1) r0 WHERE r0.T_Id=? (TransferToXtf.java:690)
 Info: readObjectTid(): SELECT T_Id,T_Ili_Tid,T_Type FROM (SELECT r1.T_Id, r1.T_Ili_Tid, 'classa1' T_Type FROM classa1 r1 UNION SELECT r2.T_Id, r2.T_Ili_Tid, 'classa1b' T_Type FROM classa1b r2) r0 WHERE r0.T_Id=? (TransferToXtf.java:690)
 Info: readObjectTid(): SELECT T_Id,T_Ili_Tid,T_Type FROM (SELECT r1.T_Id, r1.T_Ili_Tid, 'classa2' T_Type FROM classa2 r1) r0 WHERE r0.T_Id=? (TransferToXtf.java:690)
 Info: readObjectTid(): SELECT T_Id,T_Ili_Tid,T_Type FROM (SELECT r1.T_Id, r1.T_Ili_Tid, 'classb3' T_Type FROM classb3 r1) r0 WHERE r0.T_Id=? (TransferToXtf.java:690)
@@ -72,16 +72,16 @@ Info: validate multiplicity of role Assoc2.TestB.a2b3.b3...
 Info: validate reference attr Assoc2.TestB.StructA2.refa2...
 Info: validate target of role Assoc2.TestB.a2b2.a2...
 Info: validate multiplicity of role Assoc2.TestB.a2b2.a2...
-Info: close(): LinkPool KEY: size 8, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp1646552648685155466> (BTree.java:396)
+Info: close(): LinkPool KEY: size 8, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp5670631157377336285> (BTree.java:396)
 Info: close(): LinkPool KEY: keySize min 0, max 0 (BTree.java:397)
 Info: close(): LinkPool KEY: valueSize min 0, max 0 (BTree.java:398)
-Info: close(): LinkPool VAL: filesize 96 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp3123574109546293883> (BTreeImpl.java:78)
+Info: close(): LinkPool VAL: filesize 96 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp743781782961585554> (BTreeImpl.java:78)
 Info: close(): LinkPool VAL: valueSize min 0, max 8, updates 1 (BTreeImpl.java:79)
-Info: close(): ObjectPool: filesize 343, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp2524866832432219144> (ObjPoolImpl2.java:69)
-Info: close(): BTree: size 4, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp5810515199680506778> (BTree.java:396)
+Info: close(): ObjectPool: filesize 343, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp3886980527967301174> (ObjPoolImpl2.java:69)
+Info: close(): BTree: size 4, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp1933603690683426415> (BTree.java:396)
 Info: close(): BTree: keySize min 0, max 0 (BTree.java:397)
 Info: close(): BTree: valueSize min 0, max 0 (BTree.java:398)
-Info: close(): BTreeImpl VAL: filesize 424 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp5329100001573160415> (BTreeImpl.java:78)
+Info: close(): BTreeImpl VAL: filesize 424 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp8823351075727386684> (BTreeImpl.java:78)
 Info: close(): BTreeImpl VAL: valueSize min 0, max 128, updates 0 (BTreeImpl.java:79)
 Info: Assoc2b2-out.xtf: Assoc2.TestB BID=24
 Info:       1 objects in CLASS Assoc2.TestB.ClassA3

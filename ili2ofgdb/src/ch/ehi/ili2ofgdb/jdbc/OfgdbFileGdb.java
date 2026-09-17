@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -46,6 +47,27 @@ import ch.so.agi.filegdb.write.TableDefinition;
  */
 public final class OfgdbFileGdb implements AutoCloseable {
 
+    /** One writable session per geodatabase file, shared by all JDBC connections. */
+    private static final Map<String, OfgdbFileGdb> SESSIONS =
+            new HashMap<String, OfgdbFileGdb>();
+
+    /**
+     * Returns the shared session for the given geodatabase, creating it on first use. Every caller
+     * must call {@link #close()} once; the underlying database is closed with the last handle.
+     */
+    public static OfgdbFileGdb acquire(Path gdbDirectory) throws SQLException {
+        Path normalized = gdbDirectory.toAbsolutePath().normalize();
+        synchronized (SESSIONS) {
+            OfgdbFileGdb session = SESSIONS.get(normalized.toString());
+            if (session == null) {
+                session = new OfgdbFileGdb(normalized);
+                SESSIONS.put(normalized.toString(), session);
+            }
+            session.sessionRefCount++;
+            return session;
+        }
+    }
+
     /**
      * Fine grained XY precision (micro metres). The ArcGIS default of 0.1 mm is too coarse for the
      * unrounded ili2db imports.
@@ -57,13 +79,18 @@ public final class OfgdbFileGdb implements AutoCloseable {
                     -100000, 10000, 0.001);
 
     private final Path directory;
-    private final FileGeodatabase database;
     private final Map<String, String> knownTables = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
     private final Map<String, TableWriter> writers = new TreeMap<String, TableWriter>(String.CASE_INSENSITIVE_ORDER);
     private final Map<String, Long> nextIds = new TreeMap<String, Long>(String.CASE_INSENSITIVE_ORDER);
+    /** Fine grained geometry kinds of tables created by this session (MULTILINE, MULTISURFACE, ...). */
+    private final Map<String, String> geometryKinds =
+            new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
     private GdbCatalog catalog;
+    private FileGeodatabase database;
+    private int sessionRefCount = 0;
+    private boolean closed = false;
 
-    public OfgdbFileGdb(Path gdbDirectory) throws SQLException {
+    private OfgdbFileGdb(Path gdbDirectory) throws SQLException {
         try {
             this.directory = gdbDirectory.toAbsolutePath().normalize();
             Path parent = this.directory.getParent();
@@ -157,7 +184,7 @@ public final class OfgdbFileGdb implements AutoCloseable {
 
     public synchronized ColumnInfo[] columns(String tableName) throws SQLException {
         String name = resolveTableName(tableName);
-        Dataset dataset = datasetOf(name);
+        Dataset dataset = resolveDataset(name);
         if (dataset == null) {
             throw new SQLException("table not found: " + tableName);
         }
@@ -197,6 +224,16 @@ public final class OfgdbFileGdb implements AutoCloseable {
         return dataset.isPresent() ? dataset.get() : null;
     }
 
+    /** Resolves a dataset, refreshing the catalog once when it is not known yet. */
+    private Dataset resolveDataset(String tableName) throws SQLException {
+        Dataset dataset = datasetOf(tableName);
+        if (dataset != null) {
+            return dataset;
+        }
+        refreshTables();
+        return datasetOf(tableName);
+    }
+
     // ------------------------------------------------------------------
     // Row access
     // ------------------------------------------------------------------
@@ -204,7 +241,7 @@ public final class OfgdbFileGdb implements AutoCloseable {
     /** Materializes all rows of a table; geometry columns are returned as WKB. */
     public synchronized TableData readRows(String tableName) throws SQLException {
         String name = resolveTableName(tableName);
-        Dataset dataset = datasetOf(name);
+        Dataset dataset = resolveDataset(name);
         if (dataset == null) {
             throw new SQLException("table not found: " + tableName);
         }
@@ -220,11 +257,13 @@ public final class OfgdbFileGdb implements AutoCloseable {
             }
             List<Map<String, Object>> rows = new ArrayList<Map<String, Object>>();
             List<Long> objectIds = new ArrayList<Long>();
+            String fineKind = geometryKinds.get(name);
             for (FileGdbRow row : table) {
                 Map<String, Object> values = new LinkedHashMap<String, Object>();
                 for (ColumnInfo column : columns) {
                     Object value = row.get(column.name);
-                    values.put(column.name, toDriverValue(column, value, geometryDefinition));
+                    values.put(column.name,
+                            toDriverValue(column, value, geometryDefinition, fineKind));
                 }
                 rows.add(values);
                 objectIds.add(Long.valueOf(row.objectId()));
@@ -243,13 +282,14 @@ public final class OfgdbFileGdb implements AutoCloseable {
         }
     }
 
-    private Object toDriverValue(ColumnInfo column, Object value, GeometryFieldDefinition definition)
-            throws SQLException {
+    private Object toDriverValue(ColumnInfo column, Object value,
+            GeometryFieldDefinition definition, String fineKind) throws SQLException {
         if (value == null) {
             return null;
         }
         if (column.geometry) {
-            byte[] wkb = OfgdbGeometryBridge.toWkb((FileGdbGeometry) value, definition);
+            byte[] wkb = OfgdbGeometryBridge.toWkb(
+                    (FileGdbGeometry) value, definition, isMultiKind(fineKind));
             return wkb;
         }
         switch (column.field.type()) {
@@ -323,6 +363,7 @@ public final class OfgdbFileGdb implements AutoCloseable {
                 }
                 geometryDefinition = definition;
                 geometryField = FileGdbField.binary(column.name);
+                geometryKinds.put(tableName, column.geometryKind);
                 continue;
             }
             FileGdbField field = toField(column);
@@ -349,7 +390,7 @@ public final class OfgdbFileGdb implements AutoCloseable {
             }
             catalog = null;
             refreshTables();
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new SQLException("failed to create table " + tableName, e);
         }
     }
@@ -463,7 +504,7 @@ public final class OfgdbFileGdb implements AutoCloseable {
             } else {
                 writer.tableWriter.write(attributes.toArray());
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new SQLException("failed to insert into " + tableName, e);
         }
     }
@@ -584,7 +625,7 @@ public final class OfgdbFileGdb implements AutoCloseable {
                 }
                 applyUpdate(writer, data.objectIds.get(rowIndex).longValue(), columns, newValues);
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new SQLException("failed to update " + tableName, e);
         }
     }
@@ -625,7 +666,7 @@ public final class OfgdbFileGdb implements AutoCloseable {
                     writer.tableWriter.deleteRow(objectId);
                 }
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new SQLException("failed to delete from " + tableName, e);
         }
     }
@@ -694,6 +735,15 @@ public final class OfgdbFileGdb implements AutoCloseable {
 
     private TableWriter ensureWriter(String tableName, ColumnInfo[] columns) throws SQLException {
         return writer(tableName, null, columns);
+    }
+
+    private static boolean isMultiKind(String fineKind) {
+        if (fineKind == null) {
+            return false;
+        }
+        String kind = fineKind.toUpperCase(Locale.ROOT);
+        return "MULTIPOINT".equals(kind) || "MULTILINE".equals(kind) || "MULTICURVE".equals(kind)
+                || "MULTIPOLYGON".equals(kind) || "MULTISURFACE".equals(kind);
     }
 
     private static boolean hasGeometry(ColumnInfo[] columns) {
@@ -871,6 +921,17 @@ public final class OfgdbFileGdb implements AutoCloseable {
 
     @Override
     public synchronized void close() throws SQLException {
+        synchronized (SESSIONS) {
+            if (closed) {
+                return;
+            }
+            sessionRefCount--;
+            if (sessionRefCount > 0) {
+                return;
+            }
+            SESSIONS.remove(directory.toString());
+            closed = true;
+        }
         SQLException failure = null;
         try {
             flushWriters();
@@ -887,6 +948,35 @@ public final class OfgdbFileGdb implements AutoCloseable {
         if (failure != null) {
             throw failure;
         }
+    }
+
+    /** Reopens the underlying database, for example after a transaction rollback. */
+    public synchronized void reopenDatabase() throws SQLException {
+        try {
+            try {
+                flushWriters();
+            } catch (SQLException ignore) {
+                // the transaction snapshot will replace the files anyway
+            }
+            database.close();
+        } catch (IOException e) {
+            throw new SQLException("failed to close file geodatabase for reopen", e);
+        }
+        try {
+            if (Files.exists(directory)) {
+                database = FileGeodatabase.openWritable(directory);
+            } else {
+                database = FileGeodatabase.create(directory);
+            }
+        } catch (IOException e) {
+            throw new SQLException("failed to reopen file geodatabase " + directory, e);
+        }
+        catalog = null;
+        knownTables.clear();
+        writers.clear();
+        geometryKinds.clear();
+        nextIds.clear();
+        refreshTables();
     }
 
     // ------------------------------------------------------------------

@@ -590,7 +590,7 @@ public class OfgdbStatement implements Statement {
     }
 
     private AbstractSelectStmt parseSelectStatement(String sql) throws SQLException {
-        SqlLexer lexer = new SqlLexer(new java.io.StringReader(sql));
+        SqlLexer lexer = new SqlLexer(new java.io.StringReader(normalizeKeywords(sql)));
         SqlSyntax parser = new SqlSyntax(lexer);
         final SqlStmt stmt;
         try {
@@ -604,6 +604,67 @@ public class OfgdbStatement implements Statement {
             throw new SQLException("Only SELECT statements are supported");
         }
         return (AbstractSelectStmt) stmt;
+    }
+
+    /**
+     * The generated parser matches SQL keywords case sensitively; the ili2db generator emits the
+     * keywords in both cases. String literals are left untouched.
+     */
+    static String normalizeKeywords(String sql) {
+        if (sql == null) {
+            return null;
+        }
+        String[] keywords = {
+            "SELECT", "FROM", "WHERE", "ORDER", "BY", "ASC", "DESC", "LEFT", "RIGHT", "INNER",
+            "OUTER", "JOIN", "ON", "AS", "AND", "OR", "NOT", "IS", "NULL", "IN", "LIKE",
+            "BETWEEN", "UNION", "ALL", "DELETE", "INSERT", "INTO", "VALUES", "UPDATE", "SET"
+        };
+        StringBuilder out = new StringBuilder(sql.length());
+        int i = 0;
+        while (i < sql.length()) {
+            char c = sql.charAt(i);
+            if (c == '\'') {
+                out.append(c);
+                i++;
+                while (i < sql.length()) {
+                    char current = sql.charAt(i);
+                    out.append(current);
+                    i++;
+                    if (current == '\'') {
+                        if (i < sql.length() && sql.charAt(i) == '\'') {
+                            out.append(sql.charAt(i));
+                            i++;
+                            continue;
+                        }
+                        break;
+                    }
+                }
+                continue;
+            }
+            if (Character.isLetter(c)) {
+                int start = i;
+                while (i < sql.length() && (Character.isLetterOrDigit(sql.charAt(i))
+                        || sql.charAt(i) == '_' || sql.charAt(i) == '$')) {
+                    i++;
+                }
+                String word = sql.substring(start, i);
+                boolean replaced = false;
+                for (String keyword : keywords) {
+                    if (keyword.equalsIgnoreCase(word)) {
+                        out.append(keyword);
+                        replaced = true;
+                        break;
+                    }
+                }
+                if (!replaced) {
+                    out.append(word);
+                }
+                continue;
+            }
+            out.append(c);
+            i++;
+        }
+        return out.toString();
     }
 
     private ResultSet executeSelectStmt(AbstractSelectStmt stmt) throws SQLException {

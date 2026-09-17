@@ -4,7 +4,7 @@ Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
 Info: java.version 11.0.22
 Info: user.name <stefan>
 Info: maxMemory 524288 KB
-Info: currentTime 2026-09-17 12:39:40
+Info: currentTime 2026-09-17 13:33:16
 Info: resolvePathMap(): pathmap key <%ILI_FROM_DB> (Main.java:1002)
 Info: resolvePathMap(): pathmap key <%XTF_DIR> (Main.java:1002)
 Info: resolvePathMap(): pathmap key <%JAR_DIR> (Main.java:1002)
@@ -66,12 +66,12 @@ Info: object count 2
 Info: doitEnd(): write delayed objects (0)... (TransferFromXtf.java:758)
 Info: second validation pass...
 Info: validate multiplicity of role Oid3.TestC.ac.c...
-Info: close(): LinkPool KEY: size 0, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp6036371275926375966> (BTree.java:396)
+Info: close(): LinkPool KEY: size 0, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp653095111175107877> (BTree.java:396)
 Info: close(): LinkPool KEY: keySize min 0, max 0 (BTree.java:397)
 Info: close(): LinkPool KEY: valueSize min 0, max 0 (BTree.java:398)
-Info: close(): LinkPool VAL: filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp2510630989559354262> (BTreeImpl.java:78)
+Info: close(): LinkPool VAL: filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp4894331006310015253> (BTreeImpl.java:78)
 Info: close(): LinkPool VAL: valueSize min 0, max 0, updates 0 (BTreeImpl.java:79)
-Info: close(): ObjectPool: filesize 138, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp1668952122366812695> (ObjPoolImpl2.java:69)
+Info: close(): ObjectPool: filesize 138, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp7186807681167548172> (ObjPoolImpl2.java:69)
 Info: Oid3a.xtf: Oid3.TestA BID=Oid3.TestA
 Info:       1 objects in CLASS Oid3.TestA.ClassA1
 Info:       1 objects in CLASS Oid3.TestA.ClassB1b

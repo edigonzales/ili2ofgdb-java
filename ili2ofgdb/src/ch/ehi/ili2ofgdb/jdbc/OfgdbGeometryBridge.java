@@ -47,11 +47,25 @@ public final class OfgdbGeometryBridge {
 
     /** Converts a native geometry value to WKB. */
     public static byte[] toWkb(FileGdbGeometry geometry, GeometryFieldDefinition definition) {
+        return toWkb(geometry, definition, false);
+    }
+
+    /**
+     * Converts a native geometry value to WKB.
+     *
+     * @param forceMulti wraps single polylines/surfaces into their multi container, matching the
+     *     declared geometry type of the column (MULTILINE, MULTISURFACE, ...)
+     */
+    public static byte[] toWkb(FileGdbGeometry geometry, GeometryFieldDefinition definition,
+            boolean forceMulti) {
         if (geometry == null) {
             return null;
         }
         try {
             IomObject iom = OfgdbIomGeometry.toIom(geometry);
+            if (forceMulti) {
+                iom = OfgdbIomGeometry.asMulti(iom);
+            }
             Iox2wkb encoder = new Iox2wkb(definition != null && definition.hasZ() ? 3 : 2);
             String tag = iom.getobjecttag();
             if (Iom_jObject.COORD.equals(tag)) {

@@ -4,7 +4,7 @@ Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
 Info: java.version 11.0.22
 Info: user.name <stefan>
 Info: maxMemory 524288 KB
-Info: currentTime 2026-09-17 12:39:34
+Info: currentTime 2026-09-17 13:33:10
 Info: resolvePathMap(): pathmap key <%ILI_FROM_DB> (Main.java:1002)
 Info: resolvePathMap(): pathmap key <%XTF_DIR> (Main.java:1002)
 Info: resolvePathMap(): pathmap key <%JAR_DIR> (Main.java:1002)
@@ -142,12 +142,12 @@ Info: validate multiplicity of role Oid1.TestA.ab2.a...
 Info: validate target of role Oid1.TestA.ab2.a...
 Info: validate target of role Oid1.TestA.ab2.b...
 Info: validate multiplicity of role Oid1.TestC.ac.c...
-Info: close(): LinkPool KEY: size 2, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp4300117709001818848> (BTree.java:396)
+Info: close(): LinkPool KEY: size 2, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp5009548103788043477> (BTree.java:396)
 Info: close(): LinkPool KEY: keySize min 0, max 0 (BTree.java:397)
 Info: close(): LinkPool KEY: valueSize min 0, max 0 (BTree.java:398)
-Info: close(): LinkPool VAL: filesize 24 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp8843639438754480737> (BTreeImpl.java:78)
+Info: close(): LinkPool VAL: filesize 24 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp340276564793882670> (BTreeImpl.java:78)
 Info: close(): LinkPool VAL: valueSize min 0, max 8, updates 0 (BTreeImpl.java:79)
-Info: close(): ObjectPool: filesize 325, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp2934501594926884838> (ObjPoolImpl2.java:69)
+Info: close(): ObjectPool: filesize 325, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp5003053666221645006> (ObjPoolImpl2.java:69)
 Warning: ili2ofgdb: skip many-to-many relationship class Oid1.TestA.ab2; the association table already carries the mapping
 Warning: ili2ofgdb: skip many-to-many relationship class Oid1.TestA.ab2; the association table already carries the mapping
 Info: Oid1a.xtf: Oid1.TestA BID=Oid1.TestA

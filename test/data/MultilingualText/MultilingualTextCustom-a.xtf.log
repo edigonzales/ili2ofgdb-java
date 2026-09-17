@@ -4,7 +4,7 @@ Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
 Info: java.version 11.0.22
 Info: user.name <stefan>
 Info: maxMemory 524288 KB
-Info: currentTime 2026-09-17 12:38:46
+Info: currentTime 2026-09-17 13:32:14
 Info: dburl <jdbc:ili2ofgdb:build/test-ofgdb/MultilingualTextOfgdbTest.gdb>
 Info: dbusr <>
 Info: databaseProduct <ESRI FileGDB API>
@@ -16,8 +16,8 @@ Info: compile models...
 Info: lookup model <InternationalCodes_V1> 2.3 in repository <jdbc:ili2ofgdb:build/test-ofgdb/MultilingualTextOfgdbTest.gdb/>
 Info: lookup model <InternationalCodes_V1> 2.3 in repository </Users/stefan/sources/ili2ofgdb-java/test/data/MultilingualText/>
 Info: lookup model <MultilingualTextCustom0> 2.3 in repository <jdbc:ili2ofgdb:build/test-ofgdb/MultilingualTextOfgdbTest.gdb/>
-Info: ilifile </Users/stefan/sources/ili2ofgdb-java/test/data/MultilingualText/CHBase_Part2_LOCALISATION_20110830.ili>
 Info: ilifile </Users/stefan/.ilicache/jdbc&003aili2ofgdb&003abuild/test-ofgdb/MultilingualTextOfgdbTest.gdb/MultilingualTextCustom.ili>
+Info: ilifile </Users/stefan/sources/ili2ofgdb-java/test/data/MultilingualText/CHBase_Part2_LOCALISATION_20110830.ili>
 Info: process data file...
 Info: assume unknown external objects
 Info: data <test/data/MultilingualText/MultilingualTextCustom-a.xtf>

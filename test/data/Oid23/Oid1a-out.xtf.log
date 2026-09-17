@@ -4,7 +4,7 @@ Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
 Info: java.version 11.0.22
 Info: user.name <stefan>
 Info: maxMemory 524288 KB
-Info: currentTime 2026-09-17 12:39:40
+Info: currentTime 2026-09-17 13:33:16
 Info: resolvePathMap(): pathmap key <%ILI_FROM_DB> (Main.java:1002)
 Info: resolvePathMap(): pathmap key <%XTF_DIR> (Main.java:1002)
 Info: resolvePathMap(): pathmap key <%JAR_DIR> (Main.java:1002)
@@ -57,16 +57,16 @@ Info: Oid3.TestA.ClassB1b...
 Info: dumpObjHelper(): SELECT r0.T_Id, r0.T_Ili_Tid FROM classb1 r0 LEFT JOIN classb1b r1 ON r0.T_Id=r1.T_Id WHERE r0.T_Type='classb1b' AND r0.T_basket=? (TransferToXtf.java:1111)
 Info: second validation pass...
 Info: validate multiplicity of role Oid3.TestC.ac.c...
-Info: close(): LinkPool KEY: size 0, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp3482630924755657524> (BTree.java:396)
+Info: close(): LinkPool KEY: size 0, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp2611795808108776118> (BTree.java:396)
 Info: close(): LinkPool KEY: keySize min 0, max 0 (BTree.java:397)
 Info: close(): LinkPool KEY: valueSize min 0, max 0 (BTree.java:398)
-Info: close(): LinkPool VAL: filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp1308994908355508724> (BTreeImpl.java:78)
+Info: close(): LinkPool VAL: filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp1177708025944650528> (BTreeImpl.java:78)
 Info: close(): LinkPool VAL: valueSize min 0, max 0, updates 0 (BTreeImpl.java:79)
-Info: close(): ObjectPool: filesize 150, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp1406111046127930704> (ObjPoolImpl2.java:69)
-Info: close(): BTree: size 0, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp5521756739977485703> (BTree.java:396)
+Info: close(): ObjectPool: filesize 150, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp690972657508823628> (ObjPoolImpl2.java:69)
+Info: close(): BTree: size 0, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp6249303898306708758> (BTree.java:396)
 Info: close(): BTree: keySize min 0, max 0 (BTree.java:397)
 Info: close(): BTree: valueSize min 0, max 0 (BTree.java:398)
-Info: close(): BTreeImpl VAL: filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp8512016729389580254> (BTreeImpl.java:78)
+Info: close(): BTreeImpl VAL: filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp4933281603114740184> (BTreeImpl.java:78)
 Info: close(): BTreeImpl VAL: valueSize min 0, max 0, updates 0 (BTreeImpl.java:79)
 Info: Oid1a-out.xtf: Oid3.TestA BID=Oid3.TestA
 Info:       1 objects in CLASS Oid3.TestA.ClassA1

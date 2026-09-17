@@ -164,7 +164,7 @@ public class OfgdbMetaData implements DatabaseMetaData {
 				row.put("COLUMN_NAME", columnDefinition.name);
 				row.put("DATA_TYPE", Integer.valueOf(jdbcType(columnDefinition)));
 				row.put("TYPE_NAME", columnDefinition.sqlType());
-				row.put("COLUMN_SIZE", Integer.valueOf(columnDefinition.maxWidth>0?columnDefinition.maxWidth:0));
+				row.put("COLUMN_SIZE", Integer.valueOf(columnSize(columnDefinition)));
 				row.put("ORDINAL_POSITION", Integer.valueOf(i+1));
 				boolean nullable=columnDefinition.nullable;
 				row.put("NULLABLE", Integer.valueOf(nullable ? columnNullable : columnNoNulls));
@@ -173,6 +173,32 @@ public class OfgdbMetaData implements DatabaseMetaData {
 			}
 		}
 		return new OfgdbResultSet(rows,columns);
+	}
+
+	private static int columnSize(OfgdbFileGdb.ColumnInfo column) {
+		if(column.geometry){
+			return 0;
+		}
+		String type=column.sqlType();
+		if("SMALLINT".equals(type)){
+			return 5;
+		}
+		if("INTEGER".equals(type)){
+			return 10;
+		}
+		if("BIGINT".equals(type)){
+			return 19;
+		}
+		if("DOUBLE".equals(type)){
+			return 15;
+		}
+		if("TIMESTAMP".equals(type)){
+			return 26;
+		}
+		if("BLOB".equals(type)){
+			return Integer.MAX_VALUE;
+		}
+		return column.maxWidth>0?column.maxWidth:4096;
 	}
 
 	private static int jdbcType(OfgdbFileGdb.ColumnInfo column) {

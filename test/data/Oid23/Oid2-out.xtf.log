@@ -4,7 +4,7 @@ Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
 Info: java.version 11.0.22
 Info: user.name <stefan>
 Info: maxMemory 524288 KB
-Info: currentTime 2026-09-17 12:39:29
+Info: currentTime 2026-09-17 13:33:05
 Info: resolvePathMap(): pathmap key <%ILI_FROM_DB> (Main.java:1002)
 Info: resolvePathMap(): pathmap key <%XTF_DIR> (Main.java:1002)
 Info: resolvePathMap(): pathmap key <%JAR_DIR> (Main.java:1002)
@@ -50,10 +50,10 @@ Info: dumpObjHelper(): SELECT r0.T_Id, r0.T_Type, r0.T_Ili_Tid FROM classda r0 W
 Info: Oid2.TestE.ClassDb...
 Info: dumpObjHelper(): SELECT r0.T_Id, r0.T_Type, r0.T_Ili_Tid,r0.a FROM classdb r0 WHERE r0.T_Type='oid2teste_classdb' AND r0.T_basket=? (TransferToXtf.java:1111)
 Info: getTopicByBasketId(): SELECT topic,T_Ili_Tid,domains FROM T_ILI2DB_BASKET WHERE T_Id= ? (TransferToXtf.java:420)
-Info: close(): BTree: size 0, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp7031796933378422723> (BTree.java:396)
+Info: close(): BTree: size 0, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp7077757502490999071> (BTree.java:396)
 Info: close(): BTree: keySize min 0, max 0 (BTree.java:397)
 Info: close(): BTree: valueSize min 0, max 0 (BTree.java:398)
-Info: close(): BTreeImpl VAL: filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp4081491581254821933> (BTreeImpl.java:78)
+Info: close(): BTreeImpl VAL: filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp4254018016224063012> (BTreeImpl.java:78)
 Info: close(): BTreeImpl VAL: valueSize min 0, max 0, updates 0 (BTreeImpl.java:79)
 Info: Oid2.TestE BID <f43a1da3-1afc-41e7-8a03-2225785f7ae9>...
 Info: Oid2.TestE.ClassDa...
@@ -64,17 +64,17 @@ Info: second validation pass...
 Info: validate multiplicity of role Oid2.TestD.a2b.b...
 Info: validate target of role Oid2.TestD.a2b.a...
 Info: validate multiplicity of role Oid2.TestD.a2b.a...
-Info: close(): LinkPool KEY: size 2, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp3184918465922155647> (BTree.java:396)
+Info: close(): LinkPool KEY: size 2, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp7500578518147464256> (BTree.java:396)
 Info: close(): LinkPool KEY: keySize min 0, max 0 (BTree.java:397)
 Info: close(): LinkPool KEY: valueSize min 0, max 0 (BTree.java:398)
-Info: close(): LinkPool VAL: filesize 24 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp7098147869059486328> (BTreeImpl.java:78)
+Info: close(): LinkPool VAL: filesize 24 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp1289074109434755069> (BTreeImpl.java:78)
 Info: close(): LinkPool VAL: valueSize min 0, max 8, updates 0 (BTreeImpl.java:79)
-Info: close(): ObjectPool: filesize 150, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp2032072852734558838> (ObjPoolImpl2.java:69)
-Info: close(): ObjectPool: filesize 134, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp9113184841795178328> (ObjPoolImpl2.java:69)
-Info: close(): BTree: size 0, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp203240822196737749> (BTree.java:396)
+Info: close(): ObjectPool: filesize 150, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp1494885554246362847> (ObjPoolImpl2.java:69)
+Info: close(): ObjectPool: filesize 134, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp2574310249328487071> (ObjPoolImpl2.java:69)
+Info: close(): BTree: size 0, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp6563054781214632449> (BTree.java:396)
 Info: close(): BTree: keySize min 0, max 0 (BTree.java:397)
 Info: close(): BTree: valueSize min 0, max 0 (BTree.java:398)
-Info: close(): BTreeImpl VAL: filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp8092580052090724172> (BTreeImpl.java:78)
+Info: close(): BTreeImpl VAL: filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp1118517017060074017> (BTreeImpl.java:78)
 Info: close(): BTreeImpl VAL: valueSize min 0, max 0, updates 0 (BTreeImpl.java:79)
 Info: Oid2-out.xtf: Oid2.TestE BID=1832a8d4-45be-4ede-ad85-c63940de272d
 Info:       2 objects in CLASS Oid2.TestE.ClassDa

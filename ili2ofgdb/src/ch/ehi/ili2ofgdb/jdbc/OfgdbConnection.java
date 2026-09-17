@@ -47,12 +47,7 @@ public class OfgdbConnection implements Connection {
 
     void reopenSession() throws SQLException {
         ensureOpen();
-        try {
-            backend.close();
-        } catch (SQLException e) {
-            throw new SQLException("failed to close file geodatabase session", e);
-        }
-        backend = new OfgdbFileGdb(Paths.get(getDbPath()));
+        backend.reopenDatabase();
         synchronized (this) {
             knownTables.clear();
         }
@@ -554,7 +549,7 @@ public class OfgdbConnection implements Connection {
             }
             OfgdbFileSnapshot.restoreSnapshot(txnSnapshotPath, dbPath);
             if (reopenAfterRestore) {
-                backend = new OfgdbFileGdb(dbPath);
+                backend = OfgdbFileGdb.acquire(dbPath);
                 synchronized (this) {
                     knownTables.clear();
                 }

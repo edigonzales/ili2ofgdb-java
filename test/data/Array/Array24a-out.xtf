@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?><ili:transfer xmlns:ili="http://www.interlis.ch/xtf/2.4/INTERLIS" xmlns:geom="http://www.interlis.ch/geometry/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Array24="http://www.interlis.ch/xtf/2.4/Array24">
+<ili:headersection><ili:models><ili:model>Array24</ili:model></ili:models><ili:sender>ili2ofgdb-5.5.3-SNAPSHOT-07da98adb35e8dac490b78af439455cda2f41d51</ili:sender></ili:headersection>
+<ili:datasection>
+<Array24:TestA ili:bid="3">
+<Array24:Auto ili:tid="13"><Array24:Farben>Rot</Array24:Farben><Array24:Farben>Blau</Array24:Farben></Array24:Auto>
+<Array24:Auto ili:tid="14"></Array24:Auto>
+<Array24:Katalog ili:tid="200"><Array24:val>Wohn</Array24:val></Array24:Katalog>
+<Array24:Katalog ili:tid="201"><Array24:val>Industrie</Array24:val></Array24:Katalog>
+<Array24:Katalog ili:tid="202"><Array24:val>Büro</Array24:val></Array24:Katalog>
+<Array24:Gebaeude ili:tid="300"><Array24:Art ili:ref="200"></Array24:Art><Array24:Art ili:ref="202"></Array24:Art></Array24:Gebaeude>
+<Array24:Datatypes ili:tid="100"></Array24:Datatypes>
+<Array24:Datatypes ili:tid="101"><Array24:aUuid>15b6bcce-8772-4595-bf82-f727a665fbf3</Array24:aUuid><Array24:aBoolean>true</Array24:aBoolean><Array24:aTime>09:00:00.000</Array24:aTime><Array24:aDate>2002-09-24</Array24:aDate><Array24:aDateTime>1900-01-01T12:30:05.000</Array24:aDateTime><Array24:numericInt>5</Array24:numericInt><Array24:numericDec>6.0</Array24:numericDec></Array24:Datatypes>
+</Array24:TestA>
+</ili:datasection>
+</ili:transfer>

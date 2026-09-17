@@ -4,7 +4,7 @@ Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
 Info: java.version 11.0.22
 Info: user.name <stefan>
 Info: maxMemory 524288 KB
-Info: currentTime 2026-09-17 12:40:39
+Info: currentTime 2026-09-17 13:34:18
 Info: resolvePathMap(): pathmap key <%ILI_FROM_DB> (Main.java:1002)
 Info: resolvePathMap(): pathmap key <%XTF_DIR> (Main.java:1002)
 Info: resolvePathMap(): pathmap key <%JAR_DIR> (Main.java:1002)
@@ -51,10 +51,10 @@ Info: dumpObjHelper(): SELECT r0.T_Id, r0.T_Ili_Tid,r0.vorname FROM besitzerin r
 Info: AssocNtoN_Extended.Konstruktionen.Gebaeude_BesitzerIn...
 Info: dumpObjHelper(): SELECT r0.T_Id,r0.besitzerin,r0.gebaeude FROM gebaeude_besitzerin r0 WHERE r0.T_basket=? (TransferToXtf.java:1111)
 Info: getTopicByBasketId(): SELECT topic,T_Ili_Tid,domains FROM T_ILI2DB_BASKET WHERE T_Id= ? (TransferToXtf.java:420)
-Info: close(): BTree: size 0, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp1049938511531332191> (BTree.java:396)
+Info: close(): BTree: size 0, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp7027278953241965145> (BTree.java:396)
 Info: close(): BTree: keySize min 0, max 0 (BTree.java:397)
 Info: close(): BTree: valueSize min 0, max 0 (BTree.java:398)
-Info: close(): BTreeImpl VAL: filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp3460189380341270417> (BTreeImpl.java:78)
+Info: close(): BTreeImpl VAL: filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp5062667910435283383> (BTreeImpl.java:78)
 Info: close(): BTreeImpl VAL: valueSize min 0, max 0, updates 0 (BTreeImpl.java:79)
 Info: AssocNtoN_Extended.ExtendedKonst BID <AssocNtoN_Extended.ExtendedKonst>...
 Info: AssocNtoN_Extended.Konstruktionen.Gebaeude...
@@ -69,17 +69,17 @@ Info: validate target of role AssocNtoN_Extended.Konstruktionen.Gebaeude_Besitze
 Info: validate multiplicity of role AssocNtoN_Extended.Konstruktionen.Gebaeude_BesitzerIn.BesitzerIn...
 Info: validate multiplicity of role AssocNtoN_Extended.Konstruktionen.Gebaeude_BesitzerIn.Gebaeude...
 Info: validate target of role AssocNtoN_Extended.Konstruktionen.Gebaeude_BesitzerIn.BesitzerIn...
-Info: close(): LinkPool KEY: size 4, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp5456408899756008974> (BTree.java:396)
+Info: close(): LinkPool KEY: size 4, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp2436877238757864192> (BTree.java:396)
 Info: close(): LinkPool KEY: keySize min 0, max 0 (BTree.java:397)
 Info: close(): LinkPool KEY: valueSize min 0, max 0 (BTree.java:398)
-Info: close(): LinkPool VAL: filesize 48 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp1016030932936809688> (BTreeImpl.java:78)
+Info: close(): LinkPool VAL: filesize 48 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp71247042495809195> (BTreeImpl.java:78)
 Info: close(): LinkPool VAL: valueSize min 0, max 8, updates 0 (BTreeImpl.java:79)
-Info: close(): ObjectPool: filesize 196, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp2324357293256089761> (ObjPoolImpl2.java:69)
-Info: close(): ObjectPool: filesize 196, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp8904256745326047265> (ObjPoolImpl2.java:69)
-Info: close(): BTree: size 0, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp4234632898844972353> (BTree.java:396)
+Info: close(): ObjectPool: filesize 196, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp462316474385650883> (ObjPoolImpl2.java:69)
+Info: close(): ObjectPool: filesize 196, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp5621482555823568972> (ObjPoolImpl2.java:69)
+Info: close(): BTree: size 0, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp5227711820954684613> (BTree.java:396)
 Info: close(): BTree: keySize min 0, max 0 (BTree.java:397)
 Info: close(): BTree: valueSize min 0, max 0 (BTree.java:398)
-Info: close(): BTreeImpl VAL: filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp8345621789438684187> (BTreeImpl.java:78)
+Info: close(): BTreeImpl VAL: filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp7181895430533543829> (BTreeImpl.java:78)
 Info: close(): BTreeImpl VAL: valueSize min 0, max 0, updates 0 (BTreeImpl.java:79)
 Info: AssocNtoN_Extended-out.xtf: AssocNtoN_Extended.ExtendedKonst BID=AssocNtoN_Extended.ExtendedKonst
 Info:       1 objects in CLASS AssocNtoN_Extended.ExtendedKonst.Gebaeude_BesitzerIn

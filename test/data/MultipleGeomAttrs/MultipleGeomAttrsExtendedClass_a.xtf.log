@@ -4,7 +4,7 @@ Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
 Info: java.version 11.0.22
 Info: user.name <stefan>
 Info: maxMemory 524288 KB
-Info: currentTime 2026-09-17 12:40:01
+Info: currentTime 2026-09-17 13:33:38
 Info: dburl <jdbc:ili2ofgdb:build/test-ofgdb/MultipleGeomAttrsOfgdbTest.gdb>
 Info: dbusr <>
 Info: databaseProduct <ESRI FileGDB API>
@@ -21,4 +21,15 @@ Info: assume unknown external objects
 Info: data <test/data/MultipleGeomAttrs/MultipleGeomAttrsExtendedClass_a.xtf>
 Info: first validation pass...
 Info: Basket MultipleGeomAttrsExtendedClass.Topic(oid b1)...
-Error: Coordinate outside FileGDB precision domain: NaN
+Info: Basket MultipleGeomAttrsExtendedClass.TopicB(oid b2)...
+Info: object count 6
+Info: second validation pass...
+Info: MultipleGeomAttrsExtendedClass_a.xtf: MultipleGeomAttrsExtendedClass.Topic BID=b1
+Info:       1 objects in CLASS MultipleGeomAttrsExtendedClass.Topic.ClassA
+Info:       1 objects in CLASS MultipleGeomAttrsExtendedClass.Topic.ClassAp
+Info:       1 objects in CLASS MultipleGeomAttrsExtendedClass.Topic.ClassAx
+Info: MultipleGeomAttrsExtendedClass_a.xtf: MultipleGeomAttrsExtendedClass.TopicB BID=b2
+Info:       1 objects in CLASS MultipleGeomAttrsExtendedClass.TopicB.ClassB
+Info:       1 objects in CLASS MultipleGeomAttrsExtendedClass.TopicB.ClassB1
+Info:       1 objects in CLASS MultipleGeomAttrsExtendedClass.TopicB.ClassB2
+Info: ...import done

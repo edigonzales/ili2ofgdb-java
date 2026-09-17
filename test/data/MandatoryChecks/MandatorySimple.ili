@@ -1,0 +1,23 @@
+INTERLIS 2.3;
+
+MODEL MandatorySimple
+  AT "mailto:ce@eisenhutinformatik.ch" VERSION "2026-04-29" =
+
+  TOPIC Topic =
+
+    CLASS ClassB =
+    END ClassB;
+
+    CLASS ClassA =
+      name : MANDATORY TEXT*20;
+      note : TEXT*30;
+    END ClassA;
+
+    ASSOCIATION ClassAToClassB =
+      classa -- {0..*} ClassA;
+      target -- {1} ClassB;
+    END ClassAToClassB;
+
+  END Topic;
+
+END MandatorySimple.

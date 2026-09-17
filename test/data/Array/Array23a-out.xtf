@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?><TRANSFER xmlns="http://www.interlis.ch/INTERLIS2.3">
+<HEADERSECTION SENDER="ili2ofgdb-5.5.3-SNAPSHOT-07da98adb35e8dac490b78af439455cda2f41d51" VERSION="2.3"><MODELS><MODEL NAME="Array23" VERSION="2016-09-17" URI="mailto:ce@eisenhutinformatik.ch"></MODEL></MODELS></HEADERSECTION>
+<DATASECTION>
+<Array23.TestA BID="3">
+<Array23.TestA.Auto TID="13"><Farben><Array23.TestA.Farbe><Wert>Rot</Wert></Array23.TestA.Farbe><Array23.TestA.Farbe><Wert>Blau</Wert></Array23.TestA.Farbe></Farben></Array23.TestA.Auto>
+<Array23.TestA.Auto TID="14"></Array23.TestA.Auto>
+<Array23.TestA.Katalog TID="200"><val>Wohn</val></Array23.TestA.Katalog>
+<Array23.TestA.Katalog TID="201"><val>Industrie</val></Array23.TestA.Katalog>
+<Array23.TestA.Katalog TID="202"><val>Büro</val></Array23.TestA.Katalog>
+<Array23.TestA.Gebaeude TID="300"><Art><Array23.TestA.KatalogRef><Ref REF="200"></Ref></Array23.TestA.KatalogRef><Array23.TestA.KatalogRef><Ref REF="202"></Ref></Array23.TestA.KatalogRef></Art></Array23.TestA.Gebaeude>
+<Array23.TestA.Datatypes TID="100"></Array23.TestA.Datatypes>
+<Array23.TestA.Datatypes TID="101"><aUuid><Array23.TestA.AUuid_><Value OID="15b6bcce-8772-4595-bf82-f727a665fbf3"></Value></Array23.TestA.AUuid_></aUuid><aBoolean><Array23.TestA.ABoolean_><Value>true</Value></Array23.TestA.ABoolean_></aBoolean><aTime><Array23.TestA.ATime_><Value>09:00:00.000</Value></Array23.TestA.ATime_></aTime><aDate><Array23.TestA.ADate_><Value>2002-09-24</Value></Array23.TestA.ADate_></aDate><aDateTime><Array23.TestA.ADateTime_><Value>1900-01-01T12:30:05.000</Value></Array23.TestA.ADateTime_></aDateTime><numericInt><Array23.TestA.NumericInt_><Value>5</Value></Array23.TestA.NumericInt_></numericInt><numericDec><Array23.TestA.NumericDec_><Value>6.0</Value></Array23.TestA.NumericDec_></numericDec></Array23.TestA.Datatypes>
+</Array23.TestA>
+</DATASECTION>
+</TRANSFER>

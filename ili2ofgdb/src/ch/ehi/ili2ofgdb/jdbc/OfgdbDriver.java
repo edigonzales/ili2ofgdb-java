@@ -43,7 +43,7 @@ public class OfgdbDriver implements Driver {
                 throw new SQLException("failed to create directory for " + dbPath, e);
             }
         }
-        OfgdbFileGdb backend = new OfgdbFileGdb(absolute);
+        OfgdbFileGdb backend = OfgdbFileGdb.acquire(absolute);
         return new OfgdbConnection(backend, url);
     }
 

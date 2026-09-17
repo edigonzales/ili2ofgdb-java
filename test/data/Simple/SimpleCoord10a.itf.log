@@ -4,7 +4,7 @@ Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
 Info: java.version 11.0.22
 Info: user.name <stefan>
 Info: maxMemory 524288 KB
-Info: currentTime 2026-09-17 12:37:56
+Info: currentTime 2026-09-17 13:31:09
 Info: dburl <jdbc:ili2ofgdb:build/test-ofgdb/SimpleOfgdbTest.gdb>
 Info: dbusr <>
 Info: databaseProduct <ESRI FileGDB API>
@@ -21,4 +21,8 @@ Info: assume unknown external objects
 Info: data <test/data/Simple/SimpleCoord10a.itf>
 Info: first validation pass...
 Info: Basket SimpleCoord10.TestA(oid SimpleCoord10a.itf-1.TestA)...
-Error: Coordinate outside FileGDB precision domain: NaN
+Info: object count 1
+Info: second validation pass...
+Info: SimpleCoord10a.itf: SimpleCoord10.TestA
+Info:       1 objects in CLASS SimpleCoord10.TestA.ClassA1
+Info: ...import done

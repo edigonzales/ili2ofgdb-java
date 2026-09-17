@@ -1,0 +1,84 @@
+Info: ili2ofgdb-5.5.3-SNAPSHOT-07da98adb35e8dac490b78af439455cda2f41d51
+Info: ili2c-5.6.8-e6f7ab6dd5cdba29afc9b24866ecb98c057d82b2
+Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
+Info: java.version 11.0.22
+Info: user.name <stefan>
+Info: maxMemory 524288 KB
+Info: currentTime 2026-09-17 13:37:39
+Info: resolvePathMap(): pathmap key <%ILI_FROM_DB> (Main.java:1002)
+Info: resolvePathMap(): pathmap key <%XTF_DIR> (Main.java:1002)
+Info: resolvePathMap(): pathmap key <%JAR_DIR> (Main.java:1002)
+Info: setRepositories(): uri </Users/stefan/sources/ili2ofgdb-java/test/data/Array> (IliManager.java:94)
+Info: setRepositories(): uri <http://models.interlis.ch/> (IliManager.java:94)
+Info: dburl <jdbc:ili2ofgdb:build/test-ofgdb/Array23OfgdbTest.gdb>
+Info: dbusr <>
+Info: databaseProduct <ESRI FileGDB API>
+Info: databaseVersion <1.5>
+Info: driverName <openfgdb4j>
+Info: driverVersion <0.1>
+Info: max active DB statements <0>
+Info: getBasketSqlIdsFromModel(): SELECT T_Id,topic FROM T_ILI2DB_BASKET (Ili2db.java:3228)
+Info: readIliFiles(): SELECT filename,iliversion,modelName FROM T_ILI2DB_MODEL (TransferFromIli.java:459)
+Info: compile models...
+Info: getModelRepos(): pathmap key <%ILI_FROM_DB> (Main.java:1052)
+Info: getModelRepos(): pathmap key <%XTF_DIR> (Main.java:1052)
+Info: getModelRepos(): pathmap key <%JAR_DIR> (Main.java:1052)
+Info: setRepositories(): uri <jdbc:ili2ofgdb:build/test-ofgdb/Array23OfgdbTest.gdb> (IliManager.java:94)
+Info: setRepositories(): uri </Users/stefan/sources/ili2ofgdb-java/test/data/Array> (IliManager.java:94)
+Info: setRepositories(): uri <http://models.interlis.ch/> (IliManager.java:94)
+Info: setIliFiles(): uri <jdbc:ili2ofgdb:build/test-ofgdb/Array23OfgdbTest.gdb/> (IliManager.java:101)
+Info: lookup model <Array23> 2.3 in repository <jdbc:ili2ofgdb:build/test-ofgdb/Array23OfgdbTest.gdb/>
+Info: ilifile </Users/stefan/.ilicache/jdbc&003aili2ofgdb&003abuild/test-ofgdb/Array23OfgdbTest.gdb/Array23.ili>
+Info: read(): SELECT iliname,tag,setting FROM T_ILI2DB_TRAFO (TrafoConfig.java:46)
+Info: runExport(): modelname <Array23> (Ili2db.java:2511)
+Info: doSmart1(): viewable Array23.TestA.Farbe newClass, farbe (Viewable2TableMapper.java:269)
+Info: doSmart1(): viewable Array23.TestA.Auto newClass, auto (Viewable2TableMapper.java:269)
+Info: doSmart1(): viewable Array23.TestA.Katalog newClass, katalog (Viewable2TableMapper.java:269)
+Info: doSmart1(): viewable Array23.TestA.KatalogRef newClass, katalogref (Viewable2TableMapper.java:269)
+Info: doSmart1(): viewable Array23.TestA.Gebaeude newClass, gebaeude (Viewable2TableMapper.java:269)
+Info: doSmart1(): viewable Array23.TestA.AUuid_ newClass, auuid_ (Viewable2TableMapper.java:269)
+Info: doSmart1(): viewable Array23.TestA.ABoolean_ newClass, aboolean_ (Viewable2TableMapper.java:269)
+Info: doSmart1(): viewable Array23.TestA.ATime_ newClass, atime_ (Viewable2TableMapper.java:269)
+Info: doSmart1(): viewable Array23.TestA.ADate_ newClass, adate_ (Viewable2TableMapper.java:269)
+Info: doSmart1(): viewable Array23.TestA.ADateTime_ newClass, adatetime_ (Viewable2TableMapper.java:269)
+Info: doSmart1(): viewable Array23.TestA.NumericInt_ newClass, numericint_ (Viewable2TableMapper.java:269)
+Info: doSmart1(): viewable Array23.TestA.NumericDec_ newClass, numericdec_ (Viewable2TableMapper.java:269)
+Info: doSmart1(): viewable Array23.TestA.Binbox_ newClass, binbox_ (Viewable2TableMapper.java:269)
+Info: doSmart1(): viewable Array23.TestA.Xmlbox_ newClass, xmlbox_ (Viewable2TableMapper.java:269)
+Info: doSmart1(): viewable Array23.TestA.Datatypes newClass, datatypes (Viewable2TableMapper.java:269)
+Info: process data...
+Info: data <test/data/Array/Array23a-out.xtf>
+Info: setConfigValue(): modelele <PARAMETER>, param <areaOverlapValidation>, value <null> (ValidationConfig.java:170)
+Info: setConfigValue(): modelele <PARAMETER>, param <defaultGeometryTypeValidation>, value <null> (ValidationConfig.java:170)
+Info: setConfigValue(): modelele <PARAMETER>, param <allowOnlyMultiplicityReduction>, value <null> (ValidationConfig.java:170)
+Info: assume unknown external objects
+Info: first validation pass...
+Info: getTopicByBasketId(): SELECT topic,T_Ili_Tid,domains FROM T_ILI2DB_BASKET WHERE T_Id= ? (TransferToXtf.java:420)
+Info: Array23.TestA BID <3>...
+Info: Array23.TestA.Auto...
+Info: dumpObjHelper(): SELECT r0.T_Id, r0.T_Ili_Tid,r0.farbe,r0.farben FROM auto r0 WHERE r0.T_basket=? (TransferToXtf.java:1111)
+Info: Array23.TestA.Katalog...
+Info: dumpObjHelper(): SELECT r0.T_Id, r0.T_Ili_Tid,r0.val FROM katalog r0 WHERE r0.T_basket=? (TransferToXtf.java:1111)
+Info: Array23.TestA.Gebaeude...
+Info: dumpObjHelper(): SELECT r0.T_Id, r0.T_Ili_Tid,r0.art FROM gebaeude r0 WHERE r0.T_basket=? (TransferToXtf.java:1111)
+Info: Array23.TestA.Datatypes...
+Info: dumpObjHelper(): SELECT r0.T_Id, r0.T_Ili_Tid,r0.auuid,r0.aboolean,r0.atime,r0.adate,r0.adatetime,r0.numericint,r0.numericdec FROM datatypes r0 WHERE r0.T_basket=? (TransferToXtf.java:1111)
+Info: second validation pass...
+Info: validate reference attr Array23.TestA.KatalogRef.Ref...
+Info: close(): LinkPool KEY: size 0, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp8951409672009117573> (BTree.java:396)
+Info: close(): LinkPool KEY: keySize min 0, max 0 (BTree.java:397)
+Info: close(): LinkPool KEY: valueSize min 0, max 0 (BTree.java:398)
+Info: close(): LinkPool VAL: filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp2459147464466477100> (BTreeImpl.java:78)
+Info: close(): LinkPool VAL: valueSize min 0, max 0, updates 0 (BTreeImpl.java:79)
+Info: close(): ObjectPool: filesize 804, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp6711301789500941983> (ObjPoolImpl2.java:69)
+Info: close(): BTree: size 0, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp4378678551242995221> (BTree.java:396)
+Info: close(): BTree: keySize min 0, max 0 (BTree.java:397)
+Info: close(): BTree: valueSize min 0, max 0 (BTree.java:398)
+Info: close(): BTreeImpl VAL: filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp1308457494637371224> (BTreeImpl.java:78)
+Info: close(): BTreeImpl VAL: valueSize min 0, max 0, updates 0 (BTreeImpl.java:79)
+Info: Array23a-out.xtf: Array23.TestA BID=3
+Info:       2 objects in CLASS Array23.TestA.Auto
+Info:       2 objects in CLASS Array23.TestA.Datatypes
+Info:       1 objects in CLASS Array23.TestA.Gebaeude
+Info:       3 objects in CLASS Array23.TestA.Katalog
+Info: ...export done

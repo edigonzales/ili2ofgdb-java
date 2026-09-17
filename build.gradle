@@ -1,6 +1,13 @@
 group 'ch.interlis'
 version '5.5.3'+System.getProperty('release','-SNAPSHOT')
 
+configurations.all {
+    resolutionStrategy {
+        // filegdb4j is consumed as a snapshot during development
+        cacheChangingModulesFor 0, 'seconds'
+    }
+}
+
 apply plugin: "java"
 apply plugin: "maven"
 
@@ -696,6 +703,10 @@ task ili2ofgdbTest(type: Test) {
     testClassesDirs = sourceSets.ili2ofgdbTest.output.classesDirs
     testLogging.exceptionFormat = 'full'
     testLogging.showStandardStreams = true
+    if (project.hasProperty('gdalPrefix')) {
+        systemProperty 'gdal.prefix', project.property('gdalPrefix')
+    }
+    systemProperty 'ofgdb.requireGdal', project.findProperty('requireGdal') ?: 'false'
     include '**/*Test.class'
     include '**/*Tests.class'
     include '**/*TestCase.class'

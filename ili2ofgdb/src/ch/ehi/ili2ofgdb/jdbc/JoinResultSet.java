@@ -61,11 +61,11 @@ public class JoinResultSet extends AbstractResultSet implements ResultSet {
 
 	@Override
 	public boolean next() throws SQLException {
-		if(!rsLeft.next()){
+		if (!rsLeft.next()) {
 			return false;
 		}
-		Object key=rsLeft.getObject(leftKeyCol);
-		rightRecord=findRightRecord(key);
+		Object key = rsLeft.getObject(leftKeyCol);
+		rightRecord = findRightRecord(key);
 		return true;
 	}
 
@@ -162,16 +162,24 @@ public class JoinResultSet extends AbstractResultSet implements ResultSet {
 				}
 			}else{
 				colIdxInLeftTab=stmt.getLeftStmt().findCol(colName);
-				if(colIdxInLeftTab==0){
-					// column in right table
+				Object leftValue=colIdxInLeftTab>0?rsLeft.getObject(colIdxInLeftTab):null;
+				if(colIdxInLeftTab==0 || leftValue==null){
+					// the projection list is shared by all joined tables; a column that does not
+					// exist in the left table is resolved in the right table
 					for(int i=0;i<rightc;i++){
-						colIdxInRightTab=stmt.getRightStmt().get(i).findCol(colName);
-						if(colIdxInRightTab>0){
-							rightTableIdx=i;
+						int idx=stmt.getRightStmt().get(i).findCol(colName);
+						if(idx>0 && rightRecord[i]!=null && rightRecord[i][idx-1]!=null){
+							val=rightRecord[i][idx-1];
 							break;
 						}
 					}
+					if(val==null && colIdxInLeftTab>0){
+						val=leftValue;
+					}
+					lastGetWasNull=val==null;
+					return val;
 				}
+				val=leftValue;
 			}
 			if(colIdxInLeftTab>0){
 				val=rsLeft.getObject(colIdxInLeftTab);

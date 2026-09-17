@@ -143,6 +143,11 @@ public class OfgdbMapping extends AbstractJdbcMapping {
         if (!createDomains || sqlTableDef == null || sqlColDef == null || iliAttrDef == null) {
             return;
         }
+        // ARRAY_TRAFO_COALESCE values are serialized as JSON text; a domain on the text column
+        // would not be compatible.
+        if (sqlColDef.getArraySize() != DbColumn.NOT_AN_ARRAY) {
+            return;
+        }
 
         Type originalType = iliAttrDef.getDomain();
         Domain rootAliasDomain = resolveRootAliasDomain(originalType);
@@ -249,6 +254,14 @@ public class OfgdbMapping extends AbstractJdbcMapping {
     private void registerCodedDomain(DbTable sqlTableDef, DbColumn sqlColDef, String domainName,
             String fieldType, Map<String, String> codedValues) {
         String sanitizedDomainName = sanitizeName(domainName);
+        // Coded domains of an integer column may only carry integer codes; enum values that do not fit
+        // (for example a text code on an enum foreign key column) are skipped, like the former native
+        // backend tolerated them.
+        if (!codesFitFieldType(fieldType, codedValues)) {
+            ch.ehi.basics.logging.EhiLogger.logAdaption("ili2ofgdb: skip domain " + sanitizedDomainName
+                    + "; coded values do not fit SQL type " + fieldType);
+            return;
+        }
         DomainDefinition domainDefinition = domains.get(sanitizedDomainName);
         if (domainDefinition == null) {
             domainDefinition = new DomainDefinition();
@@ -316,6 +329,34 @@ public class OfgdbMapping extends AbstractJdbcMapping {
 
     private static boolean equal(String left, String right) {
         return left == null ? right == null : left.equals(right);
+    }
+
+    /**
+     * Coded domains of an integer column may only carry integer codes; enum values that do not fit
+     * (for example a text code on an enum foreign key column) are skipped, like the former native
+     * backend tolerated them.
+     */
+    private static boolean codesFitFieldType(String fieldType, Map<String, String> codedValues) {
+        if (fieldType == null) {
+            return true;
+        }
+        String type = fieldType.toUpperCase(Locale.ROOT);
+        for (String code : codedValues.keySet()) {
+            try {
+                if ("SMALLINT".equals(type)) {
+                    Short.parseShort(code);
+                } else if ("INTEGER".equals(type)) {
+                    Integer.parseInt(code);
+                } else if ("BIGINT".equals(type)) {
+                    Long.parseLong(code);
+                } else if ("DOUBLE".equals(type)) {
+                    Double.parseDouble(code);
+                }
+            } catch (RuntimeException ex) {
+                return false;
+            }
+        }
+        return true;
     }
 
     // ------------------------------------------------------------------

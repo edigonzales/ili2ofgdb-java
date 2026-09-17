@@ -239,6 +239,25 @@ final class OfgdbIomGeometry {
         return inside;
     }
 
+    /** Wraps a single polyline/surface into its multi container. */
+    static IomObject asMulti(IomObject object) {
+        if (object == null || Iom_jObject.MULTIPOLYLINE.equals(object.getobjecttag())
+                || Iom_jObject.MULTISURFACE.equals(object.getobjecttag())) {
+            return object;
+        }
+        if (Iom_jObject.POLYLINE.equals(object.getobjecttag())) {
+            IomObject multi = new Iom_jObject(Iom_jObject.MULTIPOLYLINE, null);
+            multi.addattrobj(Iom_jObject.MULTIPOLYLINE_POLYLINE, object);
+            return multi;
+        }
+        if (Iom_jObject.SURFACE.equals(object.getobjecttag())) {
+            IomObject multi = new Iom_jObject(Iom_jObject.MULTISURFACE, null);
+            multi.addattrobj(Iom_jObject.MULTISURFACE_SURFACE, object);
+            return multi;
+        }
+        return object;
+    }
+
     private static IomObject polyline(FileGdbPart part) {
         IomObject polyline = new Iom_jObject(Iom_jObject.POLYLINE, null);
         IomObject sequence = polyline.addattrobj(Iom_jObject.POLYLINE_SEQUENCE, Iom_jObject.SEGMENTS);

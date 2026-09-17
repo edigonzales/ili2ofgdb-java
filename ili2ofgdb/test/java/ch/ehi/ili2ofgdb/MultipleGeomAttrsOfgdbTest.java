@@ -23,66 +23,19 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
 
+/**
+ * FGDB flavour of the multi geometry contract.
+ *
+ * <p>OpenFileGDB supports only one geometry column per table, so {@link OfgdbTestSetup} reports
+ * {@code supportsMultipleGeometryColumns() == false}. The shared multiple-geometry tests skip
+ * themselves explicitly; the one-geometry variants run unchanged.
+ */
 public class MultipleGeomAttrsOfgdbTest extends ch.ehi.ili2db.MultipleGeomAttrsTest {
     private static final String FGDBFILENAME = "build/test-ofgdb/MultipleGeomAttrsOfgdbTest.gdb";
 
     @Override
     protected AbstractTestSetup createTestSetup() {
         return new OfgdbTestSetup(FGDBFILENAME);
-    }
-
-    @Override
-    @Test
-    public void exportXtf() throws Exception {
-        super.exportXtfOneGeom();
-    }
-
-    @Override
-    @Test
-    public void importIli() throws Exception {
-        super.importIliOneGeom();
-    }
-
-    @Override
-    @Test
-    public void importIliOneGeom() throws Exception {
-        super.importIliOneGeom();
-    }
-
-    @Override
-    @Test
-    public void importIliExtendedClassSmart1() throws Exception {
-        super.importIliExtendedClassSmart1OneGeom();
-    }
-
-    @Override
-    @Test
-    public void importIliExtendedClassSmart1OneGeom() throws Exception {
-        super.importIliExtendedClassSmart1OneGeom();
-    }
-
-    @Override
-    @Test
-    public void importIliExtendedClassSmart2() throws Exception {
-        super.importIliExtendedClassSmart2OneGeom();
-    }
-
-    @Override
-    @Test
-    public void importIliExtendedClassSmart2OneGeom() throws Exception {
-        super.importIliExtendedClassSmart2OneGeom();
-    }
-
-    @Override
-    @Test
-    public void importXtf() throws Exception {
-        super.importXtf();
-    }
-
-    @Override
-    @Test
-    public void exportXtfOneGeom() throws Exception {
-        super.exportXtfOneGeom();
     }
 
     @Override

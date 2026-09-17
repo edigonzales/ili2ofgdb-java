@@ -6,3 +6,12 @@
 #
 # Format: <path>    # <reason>
 #
+# Test contract extension for backend capabilities. Backends that cannot do
+# something skip the corresponding contract test explicitly (JUnit Assume with
+# a reason) instead of silently replacing it. See AbstractTestSetup.
+test/java/ch/ehi/ili2db/AbstractTestSetup.java    # capability hooks (multiple geometry columns, unique constraints, DDL scripts)
+test/java/ch/ehi/ili2db/MultipleGeomAttrsTest.java    # skip multiple-geometry tests when the backend supports one geometry column
+test/java/ch/ehi/ili2db/UniqueIndex10Test.java    # skip when the backend has no unique constraints
+test/java/ch/ehi/ili2db/UniqueIndex24Test.java    # skip when the backend has no unique constraints
+test/java/ch/ehi/ili2db/SimpleTest.java    # skip the offline DDL script test when unsupported
+test/java/ch/ehi/ili2db/Enum23Test.java    # skip the offline DDL script tests when unsupported

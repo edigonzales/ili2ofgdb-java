@@ -1,10 +1,10 @@
-Info: ili2ofgdb-5.5.3-SNAPSHOT-66b1aa48cfe69e94a0e31bfa7e04a0618d78e115
+Info: ili2ofgdb-5.5.3-SNAPSHOT-f735840ca50cb1566489f1597a016845f176bf0d
 Info: ili2c-5.6.8-e6f7ab6dd5cdba29afc9b24866ecb98c057d82b2
 Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
 Info: java.version 11.0.22
 Info: user.name <stefan>
 Info: maxMemory 524288 KB
-Info: currentTime 2026-09-17 13:30:25
+Info: currentTime 2026-09-17 13:50:01
 Info: search in repository <test/data/MetaConfig/repos/> for BID <163d16de-83df-4d84-8039-256f2261e226>
 Info: search in repository <test/data/MetaConfig/repos/> for BID <63553eb4-a0dc-48eb-8596-ca1aa9bdbc0f>
 Info: dburl <jdbc:ili2ofgdb:build/test-ofgdb/MetaConfigOfgdbTest.gdb>

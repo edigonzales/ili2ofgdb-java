@@ -60,6 +60,7 @@ public abstract class SimpleTest {
     @Test
     public void createScriptFromIliCoord() throws Exception
     {
+        org.junit.Assume.assumeTrue("backend cannot collect DDL scripts", setup.supportsDdlScripts());
         File data=new File(TEST_OUT,"SimpleCoord23.ili");
         File outfile=new File(data.getPath()+"-out.sql");
         Config config=new Config();

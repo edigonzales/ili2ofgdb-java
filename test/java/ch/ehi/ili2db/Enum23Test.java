@@ -34,6 +34,7 @@ public abstract class Enum23Test {
     @Test
     public void createScriptFromIliFkTable() throws Exception
     {
+        org.junit.Assume.assumeTrue("backend cannot collect DDL scripts", setup.supportsDdlScripts());
         Connection jdbcConnection=null;
         try{
             setup.resetDb();
@@ -104,6 +105,7 @@ public abstract class Enum23Test {
     @Test
     public void createScriptFromIliFkTableScriptOnly() throws Exception
     {
+        org.junit.Assume.assumeTrue("backend cannot collect DDL scripts", setup.supportsDdlScripts());
         Connection jdbcConnection=null;
         try{
             File data=new File(TEST_OUT,"Enum23b.ili");
@@ -173,6 +175,7 @@ public abstract class Enum23Test {
     @Test
     public void createScriptFromIliSingleTable() throws Exception
     {
+        org.junit.Assume.assumeTrue("backend cannot collect DDL scripts", setup.supportsDdlScripts());
         Connection jdbcConnection=null;
         try{
             setup.resetDb();
@@ -226,6 +229,7 @@ public abstract class Enum23Test {
     @Test
     public void createScriptFromIliSingleTableScriptOnly() throws Exception
     {
+        org.junit.Assume.assumeTrue("backend cannot collect DDL scripts", setup.supportsDdlScripts());
         Connection jdbcConnection=null;
         try{
             File data=new File(TEST_OUT,"Enum23b.ili");
@@ -278,6 +282,7 @@ public abstract class Enum23Test {
     @Test
     public void createScriptFromIliMultiTable() throws Exception
     {
+        org.junit.Assume.assumeTrue("backend cannot collect DDL scripts", setup.supportsDdlScripts());
         Connection jdbcConnection=null;
         try{
             setup.resetDb();
@@ -356,6 +361,7 @@ public abstract class Enum23Test {
     @Test
     public void createScriptFromIliMultiTableScriptOnly() throws Exception
     {
+        org.junit.Assume.assumeTrue("backend cannot collect DDL scripts", setup.supportsDdlScripts());
         Connection jdbcConnection=null;
         try{
             File data=new File(TEST_OUT,"Enum23b.ili");

@@ -43,7 +43,7 @@ changed=$(git diff --name-only "${UPSTREAM_REF}" -- "${paths[@]}" || true)
 
 allowed=""
 if [ -f "${ALLOWLIST}" ]; then
-  allowed=$(grep -v '^[[:space:]]*#' "${ALLOWLIST}" | sed '/^[[:space:]]*$/d' || true)
+  allowed=$(sed 's/#.*//' "${ALLOWLIST}" | sed 's/[[:space:]]*$//' | sed '/^[[:space:]]*$/d' | sed 's/^[[:space:]]*//' || true)
 fi
 
 violations=""

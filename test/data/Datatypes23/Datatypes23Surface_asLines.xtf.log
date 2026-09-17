@@ -1,10 +1,10 @@
-Info: ili2ofgdb-5.5.3-SNAPSHOT-07da98adb35e8dac490b78af439455cda2f41d51
+Info: ili2ofgdb-5.5.3-SNAPSHOT-f735840ca50cb1566489f1597a016845f176bf0d
 Info: ili2c-5.6.8-e6f7ab6dd5cdba29afc9b24866ecb98c057d82b2
 Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
 Info: java.version 11.0.22
 Info: user.name <stefan>
 Info: maxMemory 524288 KB
-Info: currentTime 2026-09-17 13:42:44
+Info: currentTime 2026-09-17 13:50:29
 Info: dburl <jdbc:ili2ofgdb:build/test-ofgdb/Datatypes23OfgdbTest.gdb>
 Info: dbusr <>
 Info: databaseProduct <ESRI FileGDB API>

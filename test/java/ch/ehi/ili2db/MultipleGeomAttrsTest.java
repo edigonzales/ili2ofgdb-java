@@ -40,6 +40,7 @@ public abstract class MultipleGeomAttrsTest {
 	@Test
 	public void importIli() throws Exception
 	{
+        org.junit.Assume.assumeTrue("backend supports only one geometry column per table", setup.supportsMultipleGeometryColumns());
 	    //EhiLogger.getInstance().setTraceFilter(false);
         setup.resetDb();
 
@@ -135,6 +136,7 @@ public abstract class MultipleGeomAttrsTest {
     @Test
     public void importIliExtendedClassSmart1() throws Exception
     {
+        org.junit.Assume.assumeTrue("backend supports only one geometry column per table", setup.supportsMultipleGeometryColumns());
         //EhiLogger.getInstance().setTraceFilter(false);
         setup.resetDb();
         File data=new File(TEST_OUT,"MultipleGeomAttrsExtendedClass.ili");
@@ -248,6 +250,7 @@ public abstract class MultipleGeomAttrsTest {
     @Test
     public void importIliExtendedClassSmart2() throws Exception
     {
+        org.junit.Assume.assumeTrue("backend supports only one geometry column per table", setup.supportsMultipleGeometryColumns());
         //EhiLogger.getInstance().setTraceFilter(false);
         setup.resetDb();
         File data=new File(TEST_OUT,"MultipleGeomAttrsExtendedClass.ili");
@@ -403,6 +406,7 @@ public abstract class MultipleGeomAttrsTest {
     @Test
     public void importXtf() throws Exception
     {
+        org.junit.Assume.assumeTrue("backend supports only one geometry column per table", setup.supportsMultipleGeometryColumns());
         //EhiLogger.getInstance().setTraceFilter(false);
         setup.resetDb();
         File data=new File(TEST_OUT,"MultipleGeomAttrs1a.xtf");
@@ -426,6 +430,7 @@ public abstract class MultipleGeomAttrsTest {
     @Test
     public void importXtfExtendedClassSmart1() throws Exception
     {
+        org.junit.Assume.assumeTrue("backend supports only one geometry column per table", setup.supportsMultipleGeometryColumns());
         //EhiLogger.getInstance().setTraceFilter(false);
         setup.resetDb();
         File data=new File(TEST_OUT,"MultipleGeomAttrsExtendedClass_a.xtf");
@@ -449,6 +454,7 @@ public abstract class MultipleGeomAttrsTest {
     @Test
     public void importXtfExtendedClassSmart2() throws Exception
     {
+        org.junit.Assume.assumeTrue("backend supports only one geometry column per table", setup.supportsMultipleGeometryColumns());
         //EhiLogger.getInstance().setTraceFilter(false);
         setup.resetDb();
         File data=new File(TEST_OUT,"MultipleGeomAttrsExtendedClass_a.xtf");
@@ -473,6 +479,7 @@ public abstract class MultipleGeomAttrsTest {
 	@Test
 	public void exportXtf() throws Exception
 	{
+        org.junit.Assume.assumeTrue("backend supports only one geometry column per table", setup.supportsMultipleGeometryColumns());
 		{
 			importXtf();
 		}
@@ -544,6 +551,7 @@ public abstract class MultipleGeomAttrsTest {
 	@Test
     public void exportXtfExtendedClassSmart1() throws Exception
     {
+        org.junit.Assume.assumeTrue("backend supports only one geometry column per table", setup.supportsMultipleGeometryColumns());
         {
             importXtfExtendedClassSmart1();
         }
@@ -608,6 +616,7 @@ public abstract class MultipleGeomAttrsTest {
     @Test
     public void exportXtfExtendedClassSmart2() throws Exception
     {
+        org.junit.Assume.assumeTrue("backend supports only one geometry column per table", setup.supportsMultipleGeometryColumns());
         {
             importXtfExtendedClassSmart2();
         }

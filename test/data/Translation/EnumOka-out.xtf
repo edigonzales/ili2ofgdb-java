@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><TRANSFER xmlns="http://www.interlis.ch/INTERLIS2.3">
-<HEADERSECTION SENDER="ili2ofgdb-5.5.3-SNAPSHOT-66b1aa48cfe69e94a0e31bfa7e04a0618d78e115" VERSION="2.3"><MODELS><MODEL NAME="EnumOkB" VERSION="1" URI="http://www.interlis.ch/ili2c/tests/"></MODEL></MODELS></HEADERSECTION>
+<HEADERSECTION SENDER="ili2ofgdb-5.5.3-SNAPSHOT-f735840ca50cb1566489f1597a016845f176bf0d" VERSION="2.3"><MODELS><MODEL NAME="EnumOkB" VERSION="1" URI="http://www.interlis.ch/ili2c/tests/"></MODEL></MODELS></HEADERSECTION>
 <DATASECTION>
 <EnumOkB.TopicB BID="EnumOkA.Test1">
 <EnumOkB.TopicB.ClassB TID="o1"></EnumOkB.TopicB.ClassB>

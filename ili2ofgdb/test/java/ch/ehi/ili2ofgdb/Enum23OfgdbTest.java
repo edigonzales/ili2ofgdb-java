@@ -126,42 +126,18 @@ public class Enum23OfgdbTest extends ch.ehi.ili2db.Enum23Test {
         }
     }
 
-    @Override
     @Test
-    public void createScriptFromIliFkTable() throws Exception {
+    public void importIliFkTableScenario() throws Exception {
         runFkTableScenario();
     }
 
-    @Override
     @Test
-    public void createScriptFromIliSingleTable() throws Exception {
+    public void importIliSingleTableScenario() throws Exception {
         runSingleTableScenario();
     }
 
-    @Override
     @Test
-    public void createScriptFromIliMultiTable() throws Exception {
-        runMultiTableScenario();
-    }
-
-    @Override
-    @Test
-    public void createScriptFromIliFkTableScriptOnly() throws Exception {
-        // OFGDB has no offline script collector path; verify equivalent schema+import behavior instead.
-        runFkTableScenario();
-    }
-
-    @Override
-    @Test
-    public void createScriptFromIliSingleTableScriptOnly() throws Exception {
-        // OFGDB has no offline script collector path; verify equivalent schema+import behavior instead.
-        runSingleTableScenario();
-    }
-
-    @Override
-    @Test
-    public void createScriptFromIliMultiTableScriptOnly() throws Exception {
-        // OFGDB has no offline script collector path; verify equivalent schema+import behavior instead.
+    public void importIliMultiTableScenario() throws Exception {
         runMultiTableScenario();
     }
 }

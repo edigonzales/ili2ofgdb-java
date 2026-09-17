@@ -1,0 +1,75 @@
+Info: ili2ofgdb-5.5.3-SNAPSHOT-66b1aa48cfe69e94a0e31bfa7e04a0618d78e115
+Info: ili2c-5.6.8-e6f7ab6dd5cdba29afc9b24866ecb98c057d82b2
+Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
+Info: java.version 11.0.22
+Info: user.name <stefan>
+Info: maxMemory 524288 KB
+Info: currentTime 2026-09-17 12:40:45
+Info: resolvePathMap(): pathmap key <%ILI_FROM_DB> (Main.java:1002)
+Info: resolvePathMap(): pathmap key <%XTF_DIR> (Main.java:1002)
+Info: resolvePathMap(): pathmap key <%JAR_DIR> (Main.java:1002)
+Info: setRepositories(): uri </Users/stefan/sources/ili2ofgdb-java/test/data/Assoc23> (IliManager.java:94)
+Info: setRepositories(): uri <http://models.interlis.ch/> (IliManager.java:94)
+Info: dburl <jdbc:ili2ofgdb:build/test-ofgdb/Assoc23OfgdbTest.gdb>
+Info: dbusr <>
+Info: databaseProduct <ESRI FileGDB API>
+Info: databaseVersion <1.5>
+Info: driverName <openfgdb4j>
+Info: driverVersion <0.1>
+Info: max active DB statements <0>
+Info: compile models...
+Info: getModelRepos(): pathmap key <%ILI_FROM_DB> (Main.java:1052)
+Info: getModelRepos(): pathmap key <%XTF_DIR> (Main.java:1052)
+Info: getModelRepos(): pathmap key <%JAR_DIR> (Main.java:1052)
+Info: setRepositories(): uri </Users/stefan/sources/ili2ofgdb-java/test/data/Assoc23> (IliManager.java:94)
+Info: setRepositories(): uri <http://models.interlis.ch/> (IliManager.java:94)
+Info: ilifile <test/data/Assoc23/AssocUpdate1.ili>
+Info: doSmartOff(): viewable AssocUpdate1.TestA.ClassA1 newClass, classa1 (Viewable2TableMapper.java:227)
+Info: doSmartOff(): viewable AssocUpdate1.TestA.ClassB1 newClass, classb1 (Viewable2TableMapper.java:227)
+Info: doSmartOff(): viewable AssocUpdate1.TestA.a2b newClass, a2b (Viewable2TableMapper.java:227)
+Info: create table structure, if not existing...
+Info: generateViewable(): wrapper of viewable CLASS AssocUpdate1.TestA.ClassA1 (TransferFromIli.java:260)
+Info: generateViewable(): wrapper of viewable CLASS AssocUpdate1.TestA.ClassB1 (TransferFromIli.java:260)
+Info: generateViewable(): wrapper of viewable ASSOCIATION AssocUpdate1.TestA.a2b (TransferFromIli.java:260)
+Info: generateViewable(): wrapper of viewable CLASS AssocUpdate1.TestA.ClassA1 (TransferFromIli.java:260)
+Info: generateViewable(): wrapper of viewable CLASS AssocUpdate1.TestA.ClassB1 (TransferFromIli.java:260)
+Info: generateViewable(): wrapper of viewable ASSOCIATION AssocUpdate1.TestA.a2b (TransferFromIli.java:260)
+Info: execSql(): CREATE TABLE classa1 (T_Id INTEGER PRIMARY KEY NOT NULL, T_basket INTEGER NOT NULL, T_Ili_Tid VARCHAR(36), attra VARCHAR(20)) (GeneratorOfgdb.java:312)
+Info: execSql(): CREATE TABLE classb1 (T_Id INTEGER PRIMARY KEY NOT NULL, T_basket INTEGER NOT NULL, T_Ili_Tid VARCHAR(36), attrb VARCHAR(20)) (GeneratorOfgdb.java:312)
+Info: execSql(): CREATE TABLE a2b (T_Id INTEGER PRIMARY KEY NOT NULL, T_basket INTEGER NOT NULL, a INTEGER NOT NULL, b INTEGER NOT NULL, attrab VARCHAR(20)) (GeneratorOfgdb.java:312)
+Info: execSql(): CREATE TABLE T_ILI2DB_BASKET (T_Id INTEGER PRIMARY KEY NOT NULL, dataset INTEGER, topic VARCHAR(200) NOT NULL, T_Ili_Tid VARCHAR(200), attachmentKey VARCHAR(200) NOT NULL, domains VARCHAR(1024)) (GeneratorOfgdb.java:312)
+Info: execSql(): CREATE TABLE T_ILI2DB_DATASET (T_Id INTEGER PRIMARY KEY NOT NULL, datasetName VARCHAR(200)) (GeneratorOfgdb.java:312)
+Info: execSql(): CREATE TABLE T_ILI2DB_INHERITANCE (thisClass VARCHAR(1024) NOT NULL, baseClass VARCHAR(1024)) (GeneratorOfgdb.java:312)
+Info: execSql(): CREATE TABLE T_ILI2DB_SETTINGS (tag VARCHAR(60) NOT NULL, setting VARCHAR(8000)) (GeneratorOfgdb.java:312)
+Info: execSql(): CREATE TABLE T_ILI2DB_TRAFO (iliname VARCHAR(1024) NOT NULL, tag VARCHAR(1024) NOT NULL, setting VARCHAR(1024) NOT NULL) (GeneratorOfgdb.java:312)
+Info: execSql(): CREATE TABLE T_ILI2DB_MODEL (filename VARCHAR(250) NOT NULL, iliversion VARCHAR(3) NOT NULL, modelName VARCHAR(4096) NOT NULL, content VARCHAR(4096) NOT NULL, importDate TIMESTAMP NOT NULL) (GeneratorOfgdb.java:312)
+Info: execSql(): CREATE TABLE T_ILI2DB_CLASSNAME (IliName VARCHAR(1024) NOT NULL, SqlName VARCHAR(1024) NOT NULL) (GeneratorOfgdb.java:312)
+Info: execSql(): CREATE TABLE T_ILI2DB_ATTRNAME (IliName VARCHAR(1024) NOT NULL, SqlName VARCHAR(1024) NOT NULL, ColOwner VARCHAR(1024) NOT NULL, Target VARCHAR(1024)) (GeneratorOfgdb.java:312)
+Info: execSql(): CREATE TABLE T_ILI2DB_COLUMN_PROP (tablename VARCHAR(255) NOT NULL, subtype VARCHAR(255), columnname VARCHAR(255) NOT NULL, tag VARCHAR(1024) NOT NULL, setting VARCHAR(8000) NOT NULL) (GeneratorOfgdb.java:312)
+Info: execSql(): CREATE TABLE T_ILI2DB_TABLE_PROP (tablename VARCHAR(255) NOT NULL, tag VARCHAR(1024) NOT NULL, setting VARCHAR(8000) NOT NULL) (GeneratorOfgdb.java:312)
+Info: execSql(): CREATE TABLE T_KEY_OBJECT (T_Key VARCHAR(30) NOT NULL, T_LastUniqueId INTEGER NOT NULL, T_LastChange TIMESTAMP NOT NULL, T_CreateDate TIMESTAMP NOT NULL, T_User VARCHAR(40) NOT NULL) (GeneratorOfgdb.java:312)
+Info: readTableMappingTableEntries(): SELECT IliName FROM T_ILI2DB_CLASSNAME (NameMapping.java:494)
+Info: updateTableMappingTable(): INSERT INTO T_ILI2DB_CLASSNAME (IliName,SqlName) VALUES (?,?) (NameMapping.java:533)
+Info: flush(): single updates executed: 3 (StatementExecutionHelper.java:50)
+Info: readAttrMappingTableEntries(): SELECT IliName,ColOwner,Target FROM T_ILI2DB_ATTRNAME (ColumnNameMapping.java:69)
+Info: updateAttrMappingTable(): INSERT INTO T_ILI2DB_ATTRNAME (IliName,SqlName,ColOwner,Target) VALUES (?,?,?,?) (ColumnNameMapping.java:109)
+Info: flush(): single updates executed: 5 (StatementExecutionHelper.java:50)
+Info: read(): SELECT iliname,tag,setting FROM T_ILI2DB_TRAFO (TrafoConfig.java:46)
+Info: updateTrafoConfig(): UPDATE T_ILI2DB_TRAFO SET setting=? WHERE iliname=? AND tag=? (TrafoConfig.java:95)
+Info: flush(): single updates executed: 0 (StatementExecutionHelper.java:50)
+Info: flush(): single updates executed: 0 (StatementExecutionHelper.java:50)
+Info: flush(): single updates executed: 0 (StatementExecutionHelper.java:50)
+Info: updateTrafoConfig(): INSERT INTO T_ILI2DB_TRAFO (iliname,tag,setting) VALUES (?,?,?) (TrafoConfig.java:125)
+Info: readInheritanceTable(): SELECT thisClass FROM T_ILI2DB_INHERITANCE (TransferFromIli.java:1213)
+Info: updateInheritanceTable(): INSERT INTO T_ILI2DB_INHERITANCE (thisClass,baseClass) VALUES (?,?) (TransferFromIli.java:1252)
+Info: flush(): single updates executed: 3 (StatementExecutionHelper.java:50)
+Info: readColumnTab(): SELECT tablename,subtype,columnname,tag,setting FROM T_ILI2DB_COLUMN_PROP (DbExtMetaInfo.java:172)
+Info: saveColumnTab(): INSERT INTO T_ILI2DB_COLUMN_PROP (tablename,subtype,columnname,tag,setting) VALUES (?,?,?,?,?) (DbExtMetaInfo.java:119)
+Info: readTableTab(): SELECT tablename,tag,setting FROM T_ILI2DB_TABLE_PROP (DbExtMetaInfo.java:268)
+Info: saveTableTab(): INSERT INTO T_ILI2DB_TABLE_PROP (tablename,tag,setting) VALUES (?,?,?) (DbExtMetaInfo.java:220)
+Info: readIliFiles(): SELECT filename,iliversion,modelName FROM T_ILI2DB_MODEL (TransferFromIli.java:459)
+Info: addModels(): INSERT INTO T_ILI2DB_MODEL (filename,iliversion,modelName,content,importDate) VALUES (?,?,?,?,?) (TransferFromIli.java:595)
+Info: updateSettings(): INSERT INTO T_ILI2DB_SETTINGS (tag,setting) VALUES (?,?) (TransferFromIli.java:751)
+Warning: ili2ofgdb: skip many-to-many relationship class AssocUpdate1.TestA.a2b; the association table already carries the mapping
+Warning: ili2ofgdb: skip many-to-many relationship class AssocUpdate1.TestA.a2b; the association table already carries the mapping
+Info: ...done

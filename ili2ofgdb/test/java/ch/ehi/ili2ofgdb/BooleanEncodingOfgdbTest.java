@@ -11,14 +11,11 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Types;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.junit.Test;
 
 import ch.ehi.ili2db.base.Ili2db;
 import ch.ehi.ili2db.gui.Config;
-import ch.ehi.openfgdb4j.OpenFgdb;
 
 public class BooleanEncodingOfgdbTest {
     private static final String TEST_DATA_DIR = "test/data";
@@ -60,9 +57,9 @@ public class BooleanEncodingOfgdbTest {
             assertEquals("SMALLINT", cols.getString("TYPE_NAME"));
         }
 
-        String domainDefinition = readItemDefinition(config.getDbfile(), "INTERLIS_BOOLEAN");
+        String domainDefinition = OfgdbTestCatalogue.itemDefinition(config.getDbfile(), "INTERLIS_BOOLEAN");
         assertNotNull(domainDefinition);
-        assertEquals("esriFieldTypeSmallInteger", findFirstTagText(domainDefinition, "FieldType"));
+        assertEquals("esriFieldTypeSmallInteger", OfgdbTestCatalogue.findFirstTagText(domainDefinition, "FieldType"));
     }
 
     @Test
@@ -101,45 +98,4 @@ public class BooleanEncodingOfgdbTest {
         }
     }
 
-    private static String readItemDefinition(String dbFile, String itemName) throws Exception {
-        OpenFgdb api = new OpenFgdb();
-        long dbHandle = api.open(dbFile);
-        try {
-            long tableHandle = api.openTable(dbHandle, "GDB_Items");
-            try {
-                long cursor = api.search(tableHandle, "Name,Definition", "");
-                try {
-                    while (true) {
-                        long row = api.fetchRow(cursor);
-                        if (row == 0L) {
-                            return null;
-                        }
-                        try {
-                            String rowName = api.rowGetString(row, "Name");
-                            if (rowName != null && rowName.equalsIgnoreCase(itemName)) {
-                                return api.rowGetString(row, "Definition");
-                            }
-                        } finally {
-                            api.closeRow(row);
-                        }
-                    }
-                } finally {
-                    api.closeCursor(cursor);
-                }
-            } finally {
-                api.closeTable(dbHandle, tableHandle);
-            }
-        } finally {
-            api.close(dbHandle);
-        }
-    }
-
-    private static String findFirstTagText(String definitionXml, String tagName) {
-        if (definitionXml == null || tagName == null) {
-            return null;
-        }
-        Pattern pattern = Pattern.compile("(?is)<" + Pattern.quote(tagName) + "\\b[^>]*>\\s*(.*?)\\s*</" + Pattern.quote(tagName) + ">");
-        Matcher matcher = pattern.matcher(definitionXml);
-        return matcher.find() ? matcher.group(1).trim() : null;
-    }
 }

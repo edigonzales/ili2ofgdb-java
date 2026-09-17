@@ -1,0 +1,51 @@
+Info: ili2ofgdb-5.5.3-SNAPSHOT-66b1aa48cfe69e94a0e31bfa7e04a0618d78e115
+Info: ili2c-5.6.8-e6f7ab6dd5cdba29afc9b24866ecb98c057d82b2
+Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
+Info: java.version 11.0.22
+Info: user.name <stefan>
+Info: maxMemory 524288 KB
+Info: currentTime 2026-09-17 12:47:14
+Info: dburl <jdbc:ili2ofgdb:build/test-ofgdb/MetaInfo23OfgdbTest.gdb>
+Info: dbusr <>
+Info: databaseProduct <ESRI FileGDB API>
+Info: databaseVersion <1.5>
+Info: driverName <openfgdb4j>
+Info: driverVersion <0.1>
+Info: max active DB statements <0>
+Info: compile models...
+Info: lookup model <MetaInfo23> 2.3 in repository <jdbc:ili2ofgdb:build/test-ofgdb/MetaInfo23OfgdbTest.gdb/>
+Info: lookup model <CatalogueObjects_V1> 2.3 in repository <jdbc:ili2ofgdb:build/test-ofgdb/MetaInfo23OfgdbTest.gdb/>
+Info: ilifile </Users/stefan/.ilicache/jdbc&003aili2ofgdb&003abuild/test-ofgdb/MetaInfo23OfgdbTest.gdb/CHBase_Part3_CATALOGUEOBJECTS_V1.ili>
+Info: ilifile </Users/stefan/.ilicache/jdbc&003aili2ofgdb&003abuild/test-ofgdb/MetaInfo23OfgdbTest.gdb/MetaInfo23.ili>
+Info: create table structure, if not existing...
+Warning: ili2ofgdb: ignored DDL error for statement <CREATE TABLE codelist (T_Id INTEGER PRIMARY KEY NOT NULL, T_basket INTEGER NOT NULL, T_Ili_Tid VARCHAR(200))>: failed to execute update <CREATE TABLE codelist (T_Id INTEGER PRIMARY KEY NOT NULL, T_basket INTEGER NOT NULL, T_Ili_Tid VARCHAR(200))>: table already exists: codelist
+Warning: ili2ofgdb: ignored DDL error for statement <CREATE TABLE structa1 (T_Id INTEGER PRIMARY KEY NOT NULL, T_basket INTEGER NOT NULL, T_Ili_Tid VARCHAR(200), T_Seq INTEGER, classa1_structa INTEGER)>: failed to execute update <CREATE TABLE structa1 (T_Id INTEGER PRIMARY KEY NOT NULL, T_basket INTEGER NOT NULL, T_Ili_Tid VARCHAR(200), T_Seq INTEGER, classa1_structa INTEGER)>: table already exists: structa1
+Warning: ili2ofgdb: ignored DDL error for statement <CREATE TABLE classa1 (T_Id INTEGER PRIMARY KEY NOT NULL, T_basket INTEGER NOT NULL, T_Type VARCHAR(60) NOT NULL, T_Ili_Tid VARCHAR(200), enuma VARCHAR(255) DOMAIN MetaInfo23_EnumDomainA, enumb VARCHAR(255) DOMAIN MetaInfo23_TestA_ClassA1_enumb, numa INTEGER, numb INTEGER, texta VARCHAR(20), textb VARCHAR(20), mtexta VARCHAR(20), mtextb VARCHAR(20), num0 INTEGER, numx INTEGER)>: failed to execute update <CREATE TABLE classa1 (T_Id INTEGER PRIMARY KEY NOT NULL, T_basket INTEGER NOT NULL, T_Type VARCHAR(60) NOT NULL, T_Ili_Tid VARCHAR(200), enuma VARCHAR(255) DOMAIN MetaInfo23_EnumDomainA, enumb VARCHAR(255) DOMAIN MetaInfo23_TestA_ClassA1_enumb, numa INTEGER, numb INTEGER, texta VARCHAR(20), textb VARCHAR(20), mtexta VARCHAR(20), mtextb VARCHAR(20), num0 INTEGER, numx INTEGER)>: table already exists: classa1
+Warning: ili2ofgdb: ignored DDL error for statement <CREATE TABLE classb1 (T_Id INTEGER PRIMARY KEY NOT NULL, T_basket INTEGER NOT NULL, T_Ili_Tid VARCHAR(200))>: failed to execute update <CREATE TABLE classb1 (T_Id INTEGER PRIMARY KEY NOT NULL, T_basket INTEGER NOT NULL, T_Ili_Tid VARCHAR(200))>: table already exists: classb1
+Warning: ili2ofgdb: ignored DDL error for statement <CREATE TABLE a2b (T_Id INTEGER PRIMARY KEY NOT NULL, T_basket INTEGER NOT NULL, a INTEGER NOT NULL, b INTEGER NOT NULL)>: failed to execute update <CREATE TABLE a2b (T_Id INTEGER PRIMARY KEY NOT NULL, T_basket INTEGER NOT NULL, a INTEGER NOT NULL, b INTEGER NOT NULL)>: table already exists: a2b
+Warning: ili2ofgdb: ignored DDL error for statement <CREATE TABLE classc (T_Id INTEGER PRIMARY KEY NOT NULL, T_basket INTEGER NOT NULL, T_Ili_Tid VARCHAR(200), geom OFGDB_GEOMETRY(POINT,2056,2))>: failed to execute update <CREATE TABLE classc (T_Id INTEGER PRIMARY KEY NOT NULL, T_basket INTEGER NOT NULL, T_Ili_Tid VARCHAR(200), geom OFGDB_GEOMETRY(POINT,2056,2))>: table already exists: classc
+Warning: ili2ofgdb: ignored DDL error for statement <CREATE TABLE T_ILI2DB_BASKET (T_Id INTEGER PRIMARY KEY NOT NULL, dataset INTEGER, topic VARCHAR(200) NOT NULL, T_Ili_Tid VARCHAR(200), attachmentKey VARCHAR(200) NOT NULL, domains VARCHAR(1024))>: failed to execute update <CREATE TABLE T_ILI2DB_BASKET (T_Id INTEGER PRIMARY KEY NOT NULL, dataset INTEGER, topic VARCHAR(200) NOT NULL, T_Ili_Tid VARCHAR(200), attachmentKey VARCHAR(200) NOT NULL, domains VARCHAR(1024))>: table already exists: T_ILI2DB_BASKET
+Warning: ili2ofgdb: ignored DDL error for statement <CREATE TABLE T_ILI2DB_DATASET (T_Id INTEGER PRIMARY KEY NOT NULL, datasetName VARCHAR(200))>: failed to execute update <CREATE TABLE T_ILI2DB_DATASET (T_Id INTEGER PRIMARY KEY NOT NULL, datasetName VARCHAR(200))>: table already exists: T_ILI2DB_DATASET
+Warning: ili2ofgdb: ignored DDL error for statement <CREATE TABLE T_ILI2DB_INHERITANCE (thisClass VARCHAR(1024) NOT NULL, baseClass VARCHAR(1024))>: failed to execute update <CREATE TABLE T_ILI2DB_INHERITANCE (thisClass VARCHAR(1024) NOT NULL, baseClass VARCHAR(1024))>: table already exists: T_ILI2DB_INHERITANCE
+Warning: ili2ofgdb: ignored DDL error for statement <CREATE TABLE T_ILI2DB_SETTINGS (tag VARCHAR(60) NOT NULL, setting VARCHAR(8000))>: failed to execute update <CREATE TABLE T_ILI2DB_SETTINGS (tag VARCHAR(60) NOT NULL, setting VARCHAR(8000))>: table already exists: T_ILI2DB_SETTINGS
+Warning: ili2ofgdb: ignored DDL error for statement <CREATE TABLE T_ILI2DB_TRAFO (iliname VARCHAR(1024) NOT NULL, tag VARCHAR(1024) NOT NULL, setting VARCHAR(1024) NOT NULL)>: failed to execute update <CREATE TABLE T_ILI2DB_TRAFO (iliname VARCHAR(1024) NOT NULL, tag VARCHAR(1024) NOT NULL, setting VARCHAR(1024) NOT NULL)>: table already exists: T_ILI2DB_TRAFO
+Warning: ili2ofgdb: ignored DDL error for statement <CREATE TABLE T_ILI2DB_MODEL (filename VARCHAR(250) NOT NULL, iliversion VARCHAR(3) NOT NULL, modelName VARCHAR(4096) NOT NULL, content VARCHAR(4096) NOT NULL, importDate TIMESTAMP NOT NULL)>: failed to execute update <CREATE TABLE T_ILI2DB_MODEL (filename VARCHAR(250) NOT NULL, iliversion VARCHAR(3) NOT NULL, modelName VARCHAR(4096) NOT NULL, content VARCHAR(4096) NOT NULL, importDate TIMESTAMP NOT NULL)>: table already exists: T_ILI2DB_MODEL
+Warning: ili2ofgdb: ignored DDL error for statement <CREATE TABLE enumdomaina (itfCode INTEGER NOT NULL, iliCode VARCHAR(1024) NOT NULL, seq INTEGER, inactive SMALLINT NOT NULL, dispName VARCHAR(250) NOT NULL, description VARCHAR(4096))>: failed to execute update <CREATE TABLE enumdomaina (itfCode INTEGER NOT NULL, iliCode VARCHAR(1024) NOT NULL, seq INTEGER, inactive SMALLINT NOT NULL, dispName VARCHAR(250) NOT NULL, description VARCHAR(4096))>: table already exists: enumdomaina
+Warning: ili2ofgdb: ignored DDL error for statement <CREATE TABLE classa1_enumb (itfCode INTEGER NOT NULL, iliCode VARCHAR(1024) NOT NULL, seq INTEGER, inactive SMALLINT NOT NULL, dispName VARCHAR(250) NOT NULL, description VARCHAR(4096))>: failed to execute update <CREATE TABLE classa1_enumb (itfCode INTEGER NOT NULL, iliCode VARCHAR(1024) NOT NULL, seq INTEGER, inactive SMALLINT NOT NULL, dispName VARCHAR(250) NOT NULL, description VARCHAR(4096))>: table already exists: classa1_enumb
+Warning: ili2ofgdb: ignored DDL error for statement <CREATE TABLE T_ILI2DB_CLASSNAME (IliName VARCHAR(1024) NOT NULL, SqlName VARCHAR(1024) NOT NULL)>: failed to execute update <CREATE TABLE T_ILI2DB_CLASSNAME (IliName VARCHAR(1024) NOT NULL, SqlName VARCHAR(1024) NOT NULL)>: table already exists: T_ILI2DB_CLASSNAME
+Warning: ili2ofgdb: ignored DDL error for statement <CREATE TABLE T_ILI2DB_ATTRNAME (IliName VARCHAR(1024) NOT NULL, SqlName VARCHAR(1024) NOT NULL, ColOwner VARCHAR(1024) NOT NULL, Target VARCHAR(1024))>: failed to execute update <CREATE TABLE T_ILI2DB_ATTRNAME (IliName VARCHAR(1024) NOT NULL, SqlName VARCHAR(1024) NOT NULL, ColOwner VARCHAR(1024) NOT NULL, Target VARCHAR(1024))>: table already exists: T_ILI2DB_ATTRNAME
+Warning: ili2ofgdb: ignored DDL error for statement <CREATE TABLE T_ILI2DB_COLUMN_PROP (tablename VARCHAR(255) NOT NULL, subtype VARCHAR(255), columnname VARCHAR(255) NOT NULL, tag VARCHAR(1024) NOT NULL, setting VARCHAR(8000) NOT NULL)>: failed to execute update <CREATE TABLE T_ILI2DB_COLUMN_PROP (tablename VARCHAR(255) NOT NULL, subtype VARCHAR(255), columnname VARCHAR(255) NOT NULL, tag VARCHAR(1024) NOT NULL, setting VARCHAR(8000) NOT NULL)>: table already exists: T_ILI2DB_COLUMN_PROP
+Warning: ili2ofgdb: ignored DDL error for statement <CREATE TABLE T_ILI2DB_TABLE_PROP (tablename VARCHAR(255) NOT NULL, tag VARCHAR(1024) NOT NULL, setting VARCHAR(8000) NOT NULL)>: failed to execute update <CREATE TABLE T_ILI2DB_TABLE_PROP (tablename VARCHAR(255) NOT NULL, tag VARCHAR(1024) NOT NULL, setting VARCHAR(8000) NOT NULL)>: table already exists: T_ILI2DB_TABLE_PROP
+Warning: ili2ofgdb: ignored DDL error for statement <CREATE TABLE T_KEY_OBJECT (T_Key VARCHAR(30) NOT NULL, T_LastUniqueId INTEGER NOT NULL, T_LastChange TIMESTAMP NOT NULL, T_CreateDate TIMESTAMP NOT NULL, T_User VARCHAR(40) NOT NULL)>: failed to execute update <CREATE TABLE T_KEY_OBJECT (T_Key VARCHAR(30) NOT NULL, T_LastUniqueId INTEGER NOT NULL, T_LastChange TIMESTAMP NOT NULL, T_CreateDate TIMESTAMP NOT NULL, T_User VARCHAR(40) NOT NULL)>: table already exists: T_KEY_OBJECT
+Warning: ili2ofgdb: ignored DDL error for statement <CREATE TABLE T_ILI2DB_META_ATTRS (ilielement VARCHAR(255) NOT NULL, attr_name VARCHAR(1024) NOT NULL, attr_value VARCHAR(8000) NOT NULL)>: failed to execute update <CREATE TABLE T_ILI2DB_META_ATTRS (ilielement VARCHAR(255) NOT NULL, attr_name VARCHAR(1024) NOT NULL, attr_value VARCHAR(8000) NOT NULL)>: table already exists: T_ILI2DB_META_ATTRS
+Info: process data file...
+Info: assume unknown external objects
+Info: data <test/data/MetaInfo/MetaInfo23a.xtf>
+Info: first validation pass...
+Info: Basket MetaInfo23.TestA(oid b1)...
+Info: object count 0
+Info: second validation pass...
+Warning: ili2ofgdb: skip many-to-many relationship class MetaInfo23.TestA.a2b; the association table already carries the mapping
+Warning: ili2ofgdb: skip many-to-many relationship class MetaInfo23.TestA.a2b; the association table already carries the mapping
+Info: MetaInfo23a.xtf: MetaInfo23.TestA BID=b1
+Info: ...import done

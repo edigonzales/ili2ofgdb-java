@@ -1,0 +1,28 @@
+INTERLIS 2.3;
+
+MODEL OfgdbRelationshipTest
+  AT "mailto:test@example.com" VERSION "2026-09-17" =
+
+  TOPIC T =
+
+    CLASS A =
+      name : TEXT*30;
+    END A;
+
+    CLASS B =
+      name : TEXT*30;
+    END B;
+
+    ASSOCIATION AtoB =
+      aRole -- {0,1} A;
+      bRole -- {0,*} B;
+    END AtoB;
+
+    ASSOCIATION OneToOne =
+      leftRole -- {1} A;
+      rightRole -- {1} B;
+    END OneToOne;
+
+  END T;
+
+END OfgdbRelationshipTest.

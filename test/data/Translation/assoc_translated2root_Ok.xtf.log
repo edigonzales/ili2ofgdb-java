@@ -1,0 +1,33 @@
+Info: ili2ofgdb-5.5.3-SNAPSHOT-66b1aa48cfe69e94a0e31bfa7e04a0618d78e115
+Info: ili2c-5.6.8-e6f7ab6dd5cdba29afc9b24866ecb98c057d82b2
+Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
+Info: java.version 11.0.22
+Info: user.name <stefan>
+Info: maxMemory 524288 KB
+Info: currentTime 2026-09-17 13:30:20
+Info: dburl <jdbc:ili2ofgdb:build/test-ofgdb/TranslationOfgdbTest.gdb>
+Info: dbusr <>
+Info: databaseProduct <ESRI FileGDB API>
+Info: databaseVersion <1.5>
+Info: driverName <openfgdb4j>
+Info: driverVersion <0.1>
+Info: max active DB statements <0>
+Info: compile models...
+Info: lookup model <Translation23_de> 2.3 in repository <jdbc:ili2ofgdb:build/test-ofgdb/TranslationOfgdbTest.gdb/>
+Info: ilifile </Users/stefan/.ilicache/jdbc&003aili2ofgdb&003abuild/test-ofgdb/TranslationOfgdbTest.gdb/Translation23.ili>
+Info: process data file...
+Info: assume unknown external objects
+Info: data <test/data/Translation/assoc_translated2root_Ok.xtf>
+Info: first validation pass...
+Info: Basket Translation23_de.TestA_de(oid b1)...
+Info: Basket Translation23_fr.TestB_fr(oid b2)...
+Info: object count 2
+Info: second validation pass...
+Info: validate multiplicity of role Translation23_de.TestB_de.a2b_de.b_de...
+Info: validate target of role Translation23_fr.TestB_fr.a2b_fr.a_fr...
+Info: validate multiplicity of role Translation23_fr.TestB_fr.a2b_fr.a_fr...
+Info: assoc_translated2root_Ok.xtf: Translation23_de.TestA_de BID=b1
+Info:       1 objects in CLASS Translation23_de.TestA_de.ClassA1_de
+Info: assoc_translated2root_Ok.xtf: Translation23_fr.TestB_fr BID=b2
+Info:       1 objects in CLASS Translation23_de.TestB_de.ClassB1_de
+Info: ...import done

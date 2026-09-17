@@ -695,6 +695,7 @@ task ili2ofgdbTest(type: Test) {
     classpath = sourceSets.ili2ofgdbTest.runtimeClasspath
     testClassesDirs = sourceSets.ili2ofgdbTest.output.classesDirs
     testLogging.exceptionFormat = 'full'
+    testLogging.showStandardStreams = true
     include '**/*Test.class'
     include '**/*Tests.class'
     include '**/*TestCase.class'

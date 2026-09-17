@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?><TRANSFER xmlns="http://www.interlis.ch/INTERLIS2.3">
+<HEADERSECTION SENDER="ili2ofgdb-5.5.3-SNAPSHOT-66b1aa48cfe69e94a0e31bfa7e04a0618d78e115" VERSION="2.3"><MODELS><MODEL NAME="Dataset10" VERSION="" URI=""></MODEL></MODELS></HEADERSECTION>
+<DATASECTION>
+<Dataset10.TopicA BID="ceis.TopicA">
+<Dataset10.TopicA.TableA TID="10"><attrA>A1</attrA></Dataset10.TopicA.TableA>
+<Dataset10.TopicA.TableA TID="11"><attrA>A2</attrA></Dataset10.TopicA.TableA>
+</Dataset10.TopicA>
+<Dataset10.TopicB BID="ceis.TopicB">
+<Dataset10.TopicB.TableB TID="20"><attrB>B1</attrB></Dataset10.TopicB.TableB>
+<Dataset10.TopicB.TableB TID="21"><attrB>B2</attrB></Dataset10.TopicB.TableB>
+</Dataset10.TopicB>
+</DATASECTION>
+</TRANSFER>

@@ -25,58 +25,38 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
-import ch.ehi.openfgdb4j.OpenFgdb;
-import ch.ehi.openfgdb4j.OpenFgdbException;
+import ch.ehi.ili2ofgdb.jdbc.OfgdbFileGdb;
 
 public class OfgdbConnection implements Connection {
-    private final OpenFgdb api;
+    private OfgdbFileGdb backend;
     private final String url;
     private final LinkedHashSet<String> knownTables = new LinkedHashSet<String>();
-    private long dbHandle;
     private boolean autoCommit = true;
     private Path txnSnapshotPath = null;
     private boolean closed = false;
 
-    protected OfgdbConnection(OpenFgdb api, long dbHandle, String url) {
-        this.api = api;
-        this.dbHandle = dbHandle;
+    protected OfgdbConnection(OfgdbFileGdb backend, String url) {
+        this.backend = backend;
         this.url = url;
         refreshKnownTableNames();
     }
 
-    OpenFgdb getApi() {
-        return api;
-    }
-
-    long getDbHandle() {
-        return dbHandle;
+    public OfgdbFileGdb getBackend() {
+        return backend;
     }
 
     void reopenSession() throws SQLException {
         ensureOpen();
-        String dbPath = getDbPath();
         try {
-            if (dbHandle != 0L) {
-                api.close(dbHandle);
-            }
-            dbHandle = api.open(dbPath);
-            synchronized (this) {
-                knownTables.clear();
-            }
-            refreshKnownTableNames();
-        } catch (OpenFgdbException e) {
-            throw new SQLException("failed to reopen openfgdb connection", e);
+            backend.close();
+        } catch (SQLException e) {
+            throw new SQLException("failed to close file geodatabase session", e);
         }
-    }
-
-    public OpenFgdb getOpenFgdbApi() throws SQLException {
-        ensureOpen();
-        return api;
-    }
-
-    public long getOpenFgdbHandle() throws SQLException {
-        ensureOpen();
-        return dbHandle;
+        backend = new OfgdbFileGdb(Paths.get(getDbPath()));
+        synchronized (this) {
+            knownTables.clear();
+        }
+        refreshKnownTableNames();
     }
 
     String getUrl() {
@@ -206,10 +186,10 @@ public class OfgdbConnection implements Connection {
 
     private void refreshKnownTableNames() {
         try {
-            for (String tableName : api.listTableNames(dbHandle)) {
+            for (String tableName : backend.listTableNames()) {
                 registerTableName(tableName);
             }
-        } catch (OpenFgdbException ignore) {
+        } catch (SQLException ignore) {
             // Metadata bootstrap should not block connection creation.
         }
     }
@@ -246,17 +226,17 @@ public class OfgdbConnection implements Connection {
             }
         }
         try {
-            if (dbHandle != 0L) {
-                api.close(dbHandle);
+            if (backend != null) {
+                backend.close();
             }
-        } catch (OpenFgdbException e) {
-            SQLException closeFailure = new SQLException("failed to close openfgdb connection", e);
+        } catch (SQLException e) {
+            SQLException closeFailure = new SQLException("failed to close file geodatabase connection", e);
             if (failure != null) {
                 closeFailure.addSuppressed(failure);
             }
             failure = closeFailure;
         } finally {
-            dbHandle = 0L;
+            backend = null;
             knownTables.clear();
             autoCommit = true;
             cleanupSnapshotQuietly();
@@ -522,9 +502,9 @@ public class OfgdbConnection implements Connection {
         if (iface.isAssignableFrom(getClass())) {
             return iface.cast(this);
         }
-        if (iface.isAssignableFrom(OpenFgdb.class)) {
+        if (iface.isAssignableFrom(OfgdbFileGdb.class)) {
             ensureOpen();
-            return iface.cast(api);
+            return iface.cast(backend);
         }
         throw new SQLException("not a wrapper for " + iface.getName());
     }
@@ -534,7 +514,7 @@ public class OfgdbConnection implements Connection {
         if (iface == null) {
             return false;
         }
-        return iface.isAssignableFrom(getClass()) || iface.isAssignableFrom(OpenFgdb.class);
+        return iface.isAssignableFrom(getClass()) || iface.isAssignableFrom(OfgdbFileGdb.class);
     }
 
     private void ensureOpen() throws SQLException {
@@ -568,13 +548,13 @@ public class OfgdbConnection implements Connection {
         }
         Path dbPath = getDbPathAsPath();
         try {
-            if (dbHandle != 0L) {
-                api.close(dbHandle);
-                dbHandle = 0L;
+            if (backend != null) {
+                backend.close();
+                backend = null;
             }
             OfgdbFileSnapshot.restoreSnapshot(txnSnapshotPath, dbPath);
             if (reopenAfterRestore) {
-                dbHandle = api.open(dbPath.toString());
+                backend = new OfgdbFileGdb(dbPath);
                 synchronized (this) {
                     knownTables.clear();
                 }
@@ -584,7 +564,7 @@ public class OfgdbConnection implements Connection {
             txnSnapshotPath = null;
             autoCommit = true;
         } catch (Exception e) {
-            throw new SQLException("failed to rollback openfgdb transaction snapshot", e);
+            throw new SQLException("failed to rollback file geodatabase transaction snapshot", e);
         }
     }
 

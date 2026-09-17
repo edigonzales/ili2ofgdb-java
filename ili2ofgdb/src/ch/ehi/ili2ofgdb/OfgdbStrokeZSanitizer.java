@@ -3,11 +3,11 @@ package ch.ehi.ili2ofgdb;
 import ch.ehi.ili2db.converter.ConverterException;
 import ch.interlis.iox_j.wkb.WKBConstants;
 
-final class OfgdbStrokeZSanitizer {
+public final class OfgdbStrokeZSanitizer {
     private OfgdbStrokeZSanitizer() {
     }
 
-    static byte[] sanitizeNaNZToZero(byte[] wkb) throws ConverterException {
+    public static byte[] sanitizeNaNZToZero(byte[] wkb) throws ConverterException {
         if (wkb == null || wkb.length == 0) {
             return wkb;
         }

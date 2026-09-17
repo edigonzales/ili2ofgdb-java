@@ -112,6 +112,10 @@ public class GeneratorOfgdb implements Generator {
 
         StringBuilder def = new StringBuilder();
         def.append(column.getName()).append(" ").append(toSqlType(column));
+        Object domain = column.getCustomValue(ch.ehi.ili2ofgdb.OfgdbMapping.DOMAIN_CUSTOM_KEY);
+        if (domain != null) {
+            def.append(" DOMAIN ").append(domain.toString());
+        }
 
         if (column instanceof DbColId && ((DbColId) column).isPrimaryKey()) {
             def.append(" PRIMARY KEY");

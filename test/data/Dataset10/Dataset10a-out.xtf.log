@@ -1,0 +1,31 @@
+Info: ili2ofgdb-5.5.3-SNAPSHOT-66b1aa48cfe69e94a0e31bfa7e04a0618d78e115
+Info: ili2c-5.6.8-e6f7ab6dd5cdba29afc9b24866ecb98c057d82b2
+Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
+Info: java.version 11.0.22
+Info: user.name <stefan>
+Info: maxMemory 524288 KB
+Info: currentTime 2026-09-17 12:38:13
+Info: dburl <jdbc:ili2ofgdb:build/test-ofgdb/Dataset10OfgdbTest.gdb>
+Info: dbusr <>
+Info: databaseProduct <ESRI FileGDB API>
+Info: databaseVersion <1.5>
+Info: driverName <openfgdb4j>
+Info: driverVersion <0.1>
+Info: max active DB statements <0>
+Info: compile models...
+Info: lookup model <Dataset10> 1.0 in repository <jdbc:ili2ofgdb:build/test-ofgdb/Dataset10OfgdbTest.gdb/>
+Info: ilifile </Users/stefan/.ilicache/jdbc&003aili2ofgdb&003abuild/test-ofgdb/Dataset10OfgdbTest.gdb/Dataset10.ili>
+Info: process data...
+Info: data <test/data/Dataset10/Dataset10a-out.xtf>
+Info: assume unknown external objects
+Info: first validation pass...
+Info: Dataset10.TopicA BID <ceis.TopicA>...
+Info: Dataset10.TopicA.TableA...
+Info: Dataset10.TopicB BID <ceis.TopicB>...
+Info: Dataset10.TopicB.TableB...
+Info: second validation pass...
+Info: Dataset10a-out.xtf: Dataset10.TopicA
+Info:       2 objects in CLASS Dataset10.TopicA.TableA
+Info: Dataset10a-out.xtf: Dataset10.TopicB
+Info:       2 objects in CLASS Dataset10.TopicB.TableB
+Info: ...export done

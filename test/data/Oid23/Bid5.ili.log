@@ -1,0 +1,78 @@
+Info: ili2ofgdb-5.5.3-SNAPSHOT-66b1aa48cfe69e94a0e31bfa7e04a0618d78e115
+Info: ili2c-5.6.8-e6f7ab6dd5cdba29afc9b24866ecb98c057d82b2
+Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
+Info: java.version 11.0.22
+Info: user.name <stefan>
+Info: maxMemory 524288 KB
+Info: currentTime 2026-09-17 12:39:31
+Info: resolvePathMap(): pathmap key <%ILI_FROM_DB> (Main.java:1002)
+Info: resolvePathMap(): pathmap key <%XTF_DIR> (Main.java:1002)
+Info: resolvePathMap(): pathmap key <%JAR_DIR> (Main.java:1002)
+Info: setRepositories(): uri </Users/stefan/sources/ili2ofgdb-java/test/data/Oid23> (IliManager.java:94)
+Info: setRepositories(): uri <http://models.interlis.ch/> (IliManager.java:94)
+Info: dburl <jdbc:ili2ofgdb:build/test-ofgdb/Oid23OfgdbTest.gdb>
+Info: dbusr <>
+Info: databaseProduct <ESRI FileGDB API>
+Info: databaseVersion <1.5>
+Info: driverName <openfgdb4j>
+Info: driverVersion <0.1>
+Info: max active DB statements <0>
+Info: compile models...
+Info: getModelRepos(): pathmap key <%ILI_FROM_DB> (Main.java:1052)
+Info: getModelRepos(): pathmap key <%XTF_DIR> (Main.java:1052)
+Info: getModelRepos(): pathmap key <%JAR_DIR> (Main.java:1052)
+Info: setRepositories(): uri </Users/stefan/sources/ili2ofgdb-java/test/data/Oid23> (IliManager.java:94)
+Info: setRepositories(): uri <http://models.interlis.ch/> (IliManager.java:94)
+Info: ilifile <test/data/Oid23/Bid5.ili>
+Error: Model Bid5 requires column T_basket
+Error:     ch.ehi.ili2db.base.Ili2db.verifyIfBasketColRequired(Ili2db.java:2114)
+Error:     ch.ehi.ili2db.base.Ili2db.runSchemaImport(Ili2db.java:1513)
+Error:     ch.ehi.ili2db.base.Ili2db.run(Ili2db.java:263)
+Error:     ch.ehi.ili2db.Oid23Test.importIliStableBidWoBasketCol_Smart1_fails(Oid23Test.java:1322)
+Error:     java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+Error:     java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+Error:     java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+Error:     java.base/java.lang.reflect.Method.invoke(Method.java:566)
+Error:     org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+Error:     org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+Error:     org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+Error:     org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+Error:     org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+Error:     org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+Error:     org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+Error:     org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+Error:     org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+Error:     org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+Error:     org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+Error:     org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+Error:     org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+Error:     org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:110)
+Error:     org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
+Error:     org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
+Error:     org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
+Error:     org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
+Error:     java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+Error:     java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+Error:     java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+Error:     java.base/java.lang.reflect.Method.invoke(Method.java:566)
+Error:     org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+Error:     org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+Error:     org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:32)
+Error:     org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:93)
+Error:     com.sun.proxy.$Proxy2.processTestClass(Unknown Source)
+Error:     org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:118)
+Error:     java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+Error:     java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+Error:     java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+Error:     java.base/java.lang.reflect.Method.invoke(Method.java:566)
+Error:     org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+Error:     org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+Error:     org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:175)
+Error:     org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:157)
+Error:     org.gradle.internal.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:404)
+Error:     org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:63)
+Error:     org.gradle.internal.concurrent.ManagedExecutorImpl$1.run(ManagedExecutorImpl.java:46)
+Error:     java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+Error:     java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+Error:     org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:55)
+Error:     java.base/java.lang.Thread.run(Thread.java:829)

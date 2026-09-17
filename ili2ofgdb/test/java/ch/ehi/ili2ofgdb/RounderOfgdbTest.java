@@ -213,4 +213,91 @@ public class RounderOfgdbTest extends ch.ehi.ili2db.RounderTest {
         double y = Double.parseDouble(yRaw);
         return String.format(java.util.Locale.ROOT, "%.4f|%.4f", x, y);
     }
+
+    // --- abstract hooks of the shared RounderTest (IOM 2.4 multi geometries) ---
+
+    @Override
+    protected void assertRounding24_classMultiKoord2(Statement stmt) throws Exception {
+        try (ResultSet rs = stmt.executeQuery(
+                "SELECT lcoord FROM " + setup.prefixName("classmultikoord2"))) {
+            Assert.assertTrue(rs.next());
+            byte[] wkb = rs.getBytes(1);
+            Assert.assertNotNull("expected WKB geometry value", wkb);
+            IomObject multiCoord = new OfgdbWkb2iox().read(wkb);
+            Assert.assertEquals("MULTICOORD", multiCoord.getobjecttag());
+            Assert.assertEquals(2, multiCoord.getattrvaluecount("coord"));
+            IomObject coord0 = multiCoord.getattrobj("coord", 0);
+            Assert.assertEquals(2460001.000, Double.parseDouble(coord0.getattrvalue("C1")), 0.00005);
+            Assert.assertEquals(1045001.000, Double.parseDouble(coord0.getattrvalue("C2")), 0.00005);
+            IomObject coord1 = multiCoord.getattrobj("coord", 1);
+            Assert.assertEquals(2460002.001, Double.parseDouble(coord1.getattrvalue("C1")), 0.00005);
+            Assert.assertEquals(1045002.001, Double.parseDouble(coord1.getattrvalue("C2")), 0.00005);
+            Assert.assertFalse(rs.next());
+        }
+    }
+
+    @Override
+    protected void assertRounding24_multiLine2(Statement stmt) throws Exception {
+        try (ResultSet rs = stmt.executeQuery(
+                "SELECT straightsarcs2d FROM " + setup.prefixName("multiline2"))) {
+            Assert.assertTrue(rs.next());
+            byte[] wkb = rs.getBytes(1);
+            Assert.assertNotNull("expected WKB geometry value", wkb);
+            IomObject multiLine = new OfgdbWkb2iox().read(wkb);
+            Assert.assertEquals("MULTIPOLYLINE", multiLine.getobjecttag());
+            Assert.assertEquals(2, multiLine.getattrvaluecount("polyline"));
+            IomObject polyline0 = multiLine.getattrobj("polyline", 0);
+            IomObject segments0 = polyline0.getattrobj("sequence", 0);
+            Assert.assertEquals(3, segments0.getattrvaluecount("segment"));
+            IomObject straight = segments0.getattrobj("segment", 0);
+            Assert.assertEquals(2460001.000, Double.parseDouble(straight.getattrvalue("C1")), 0.00005);
+            Assert.assertEquals(1045001.000, Double.parseDouble(straight.getattrvalue("C2")), 0.00005);
+            IomObject arc = segments0.getattrobj("segment", 1);
+            Assert.assertEquals("ARC", arc.getobjecttag());
+            Assert.assertEquals(2460005.000, Double.parseDouble(arc.getattrvalue("A1")), 0.00005);
+            Assert.assertEquals(1045004.000, Double.parseDouble(arc.getattrvalue("A2")), 0.00005);
+            Assert.assertEquals(2460006.000, Double.parseDouble(arc.getattrvalue("C1")), 0.00005);
+            Assert.assertEquals(1045006.000, Double.parseDouble(arc.getattrvalue("C2")), 0.00005);
+            IomObject polyline1 = multiLine.getattrobj("polyline", 1);
+            IomObject segments1 = polyline1.getattrobj("sequence", 0);
+            IomObject last = segments1.getattrobj("segment",
+                    segments1.getattrvaluecount("segment") - 1);
+            Assert.assertEquals(2460030.001, Double.parseDouble(last.getattrvalue("C1")), 0.00005);
+            Assert.assertEquals(1045030.001, Double.parseDouble(last.getattrvalue("C2")), 0.00005);
+            Assert.assertFalse(rs.next());
+        }
+    }
+
+    @Override
+    protected void assertRounding24_multiSurface2(Statement stmt) throws Exception {
+        try (ResultSet rs = stmt.executeQuery(
+                "SELECT surfacearcs2d FROM " + setup.prefixName("multisurface2"))) {
+            Assert.assertTrue(rs.next());
+            byte[] wkb = rs.getBytes(1);
+            Assert.assertNotNull("expected WKB geometry value", wkb);
+            IomObject multiSurface = new OfgdbWkb2iox().read(wkb);
+            Assert.assertEquals("MULTISURFACE", multiSurface.getobjecttag());
+            Assert.assertEquals(2, multiSurface.getattrvaluecount("surface"));
+            IomObject surface0 = multiSurface.getattrobj("surface", 0);
+            IomObject polyline0 = surface0.getattrobj("boundary", 0).getattrobj("polyline", 0);
+            IomObject segments0 = polyline0.getattrobj("sequence", 0);
+            boolean sawArc = false;
+            Set<String> points = new HashSet<String>();
+            for (int i = 0; i < segments0.getattrvaluecount("segment"); i++) {
+                IomObject segment = segments0.getattrobj("segment", i);
+                if ("ARC".equalsIgnoreCase(segment.getobjecttag())) {
+                    sawArc = true;
+                    Assert.assertEquals(2460010.000, Double.parseDouble(segment.getattrvalue("A1")), 0.00005);
+                    Assert.assertEquals(1045018.000, Double.parseDouble(segment.getattrvalue("A2")), 0.00005);
+                }
+                if (segment.getattrvalue("C1") != null && segment.getattrvalue("C2") != null) {
+                    points.add(pointKey(segment.getattrvalue("C1"), segment.getattrvalue("C2")));
+                }
+            }
+            Assert.assertTrue("expected an ARC segment in the first surface", sawArc);
+            Assert.assertTrue(points.contains(pointKey("2460001.000", "1045001.000")));
+            Assert.assertTrue(points.contains(pointKey("2460020.000", "1045015.000")));
+            Assert.assertFalse(rs.next());
+        }
+    }
 }

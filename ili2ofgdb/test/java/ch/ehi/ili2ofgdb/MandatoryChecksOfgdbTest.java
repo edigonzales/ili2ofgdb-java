@@ -27,7 +27,6 @@ import org.xml.sax.InputSource;
 
 import ch.ehi.ili2db.base.Ili2db;
 import ch.ehi.ili2db.gui.Config;
-import ch.ehi.openfgdb4j.OpenFgdb;
 
 public class MandatoryChecksOfgdbTest {
     private static final String TEST_DATA_DIR = "test/data/MandatoryChecks";
@@ -48,7 +47,7 @@ public class MandatoryChecksOfgdbTest {
         config.setBasketHandling(Config.BASKET_HANDLING_READWRITE);
         Ili2db.run(config, null);
 
-        String definitionXml = readItemDefinition(config.getDbfile(), setup.prefixName("classa"));
+        String definitionXml = OfgdbTestCatalogue.itemDefinition(config.getDbfile(), setup.prefixName("classa"));
         assertNotNull(definitionXml);
         assertFieldNullable(definitionXml, "aname", Boolean.FALSE);
         assertFieldNullable(definitionXml, "target", Boolean.FALSE);
@@ -67,39 +66,6 @@ public class MandatoryChecksOfgdbTest {
                     assertTrue(exceptionContains(expected, "not null") || exceptionContains(expected, "non-nullable"));
                 }
             }
-        }
-    }
-
-    private static String readItemDefinition(String dbFile, String itemName) throws Exception {
-        OpenFgdb api = new OpenFgdb();
-        long dbHandle = api.open(dbFile);
-        try {
-            long tableHandle = api.openTable(dbHandle, "GDB_Items");
-            try {
-                long cursor = api.search(tableHandle, "Name,Definition", "");
-                try {
-                    while (true) {
-                        long row = api.fetchRow(cursor);
-                        if (row == 0L) {
-                            return null;
-                        }
-                        try {
-                            String rowName = api.rowGetString(row, "Name");
-                            if (rowName != null && rowName.equalsIgnoreCase(itemName)) {
-                                return api.rowGetString(row, "Definition");
-                            }
-                        } finally {
-                            api.closeRow(row);
-                        }
-                    }
-                } finally {
-                    api.closeCursor(cursor);
-                }
-            } finally {
-                api.closeTable(dbHandle, tableHandle);
-            }
-        } finally {
-            api.close(dbHandle);
         }
     }
 

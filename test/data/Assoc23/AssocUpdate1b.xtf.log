@@ -1,0 +1,90 @@
+Info: ili2ofgdb-5.5.3-SNAPSHOT-66b1aa48cfe69e94a0e31bfa7e04a0618d78e115
+Info: ili2c-5.6.8-e6f7ab6dd5cdba29afc9b24866ecb98c057d82b2
+Info: iox-ili-1.24.4-8e966a086a72e7e2990a312b1229ee5878fd5994
+Info: java.version 11.0.22
+Info: user.name <stefan>
+Info: maxMemory 524288 KB
+Info: currentTime 2026-09-17 12:40:36
+Info: resolvePathMap(): pathmap key <%ILI_FROM_DB> (Main.java:1002)
+Info: resolvePathMap(): pathmap key <%XTF_DIR> (Main.java:1002)
+Info: resolvePathMap(): pathmap key <%JAR_DIR> (Main.java:1002)
+Info: setRepositories(): uri </Users/stefan/sources/ili2ofgdb-java/test/data/Assoc23> (IliManager.java:94)
+Info: setRepositories(): uri <http://models.interlis.ch/> (IliManager.java:94)
+Info: runUpdate(): modeldir <%ILI_FROM_DB;%XTF_DIR;http://models.interlis.ch/;%JAR_DIR> (Ili2db.java:375)
+Info: runUpdate(): models <%XTF> (Ili2db.java:428)
+Info: dburl <jdbc:ili2ofgdb:build/test-ofgdb/Assoc23OfgdbTest.gdb>
+Info: dbusr <>
+Info: databaseProduct <ESRI FileGDB API>
+Info: databaseVersion <1.5>
+Info: driverName <openfgdb4j>
+Info: driverVersion <0.1>
+Info: max active DB statements <0>
+Info: readIliFiles(): SELECT filename,iliversion,modelName FROM T_ILI2DB_MODEL (TransferFromIli.java:459)
+Info: compile models...
+Info: getModelRepos(): pathmap key <%ILI_FROM_DB> (Main.java:1052)
+Info: getModelRepos(): pathmap key <%XTF_DIR> (Main.java:1052)
+Info: getModelRepos(): pathmap key <%JAR_DIR> (Main.java:1052)
+Info: setRepositories(): uri <jdbc:ili2ofgdb:build/test-ofgdb/Assoc23OfgdbTest.gdb> (IliManager.java:94)
+Info: setRepositories(): uri </Users/stefan/sources/ili2ofgdb-java/test/data/Assoc23> (IliManager.java:94)
+Info: setRepositories(): uri <http://models.interlis.ch/> (IliManager.java:94)
+Info: setIliFiles(): uri <jdbc:ili2ofgdb:build/test-ofgdb/Assoc23OfgdbTest.gdb/> (IliManager.java:101)
+Info: lookup model <AssocUpdate1> 2.3 in repository <jdbc:ili2ofgdb:build/test-ofgdb/Assoc23OfgdbTest.gdb/>
+Info: ilifile </Users/stefan/.ilicache/jdbc&003aili2ofgdb&003abuild/test-ofgdb/Assoc23OfgdbTest.gdb/AssocUpdate1.ili>
+Info: read(): SELECT iliname,tag,setting FROM T_ILI2DB_TRAFO (TrafoConfig.java:46)
+Info: runUpdate(): use model AssocUpdate1 (Ili2db.java:677)
+Info: doSmart1(): viewable AssocUpdate1.TestA.ClassA1 newClass, classa1 (Viewable2TableMapper.java:269)
+Info: doSmart1(): viewable AssocUpdate1.TestA.ClassB1 newClass, classb1 (Viewable2TableMapper.java:269)
+Info: doSmart1(): viewable AssocUpdate1.TestA.a2b newClass, a2b (Viewable2TableMapper.java:269)
+Info: process data file...
+Info: getDatasetId(): SELECT T_Id FROM T_ILI2DB_DATASET WHERE datasetName= ? (Ili2db.java:2896)
+Info: setConfigValue(): modelele <PARAMETER>, param <areaOverlapValidation>, value <null> (ValidationConfig.java:170)
+Info: setConfigValue(): modelele <PARAMETER>, param <defaultGeometryTypeValidation>, value <null> (ValidationConfig.java:170)
+Info: setConfigValue(): modelele <PARAMETER>, param <allowOnlyMultiplicityReduction>, value <null> (ValidationConfig.java:170)
+Info: assume unknown external objects
+Info: data <test/data/Assoc23/AssocUpdate1b.xtf>
+Info: first validation pass...
+Info: Basket AssocUpdate1.TestA(oid AssocUpdate1.TestA)...
+Info: getBasketSqlIdsFromTopic(): SELECT T_Id,topic FROM T_ILI2DB_BASKET (Ili2db.java:3139)
+Info: AssocUpdate1.TestA.ClassA1 read ids...
+Info: readObjectSqlIds(): SELECT r0.T_Id, r0.T_Ili_Tid FROM classa1 r0 WHERE r0.T_basket=? (TransferFromXtf.java:1645)
+Info: AssocUpdate1.TestA.ClassB1 read ids...
+Info: readObjectSqlIds(): SELECT r0.T_Id, r0.T_Ili_Tid FROM classb1 r0 WHERE r0.T_basket=? (TransferFromXtf.java:1645)
+Info: dropRecords(): DELETE FROM a2b WHERE T_basket=3 (TransferFromXtf.java:957)
+Info: removeBasketsFromDataset(): UPDATE T_ILI2DB_BASKET SET dataset=NULL WHERE T_Id IN (3) (TransferFromXtf.java:2200)
+Info: getCount(): SELECT T_LastUniqueId FROM T_KEY_OBJECT WHERE T_Key= ? (TableBasedIdGen.java:86)
+Info: setCount(): UPDATE T_KEY_OBJECT SET T_LastUniqueId=?,T_LastChange=?,T_User=? WHERE T_Key=? (TableBasedIdGen.java:152)
+Info: writeBasket(): INSERT INTO T_ILI2DB_BASKET(T_Id, topic, T_Ili_Tid, attachmentKey, dataset, domains) VALUES (?,?,?,?,?,?) (TransferFromXtf.java:2224)
+Info: getInsertStmt(): UPDATE classa1 SET T_basket=?,attra=? WHERE T_Id=? (TransferFromXtf.java:2399)
+Info: writeObject(): UPDATE classa1 SET T_basket=?,attra=? WHERE T_Id=? (TransferFromXtf.java:1786)
+Info: flush(): single updates executed: 1 (StatementExecutionHelper.java:50)
+Info: getInsertStmt(): UPDATE classb1 SET T_basket=?,attrb=? WHERE T_Id=? (TransferFromXtf.java:2399)
+Info: writeObject(): UPDATE classb1 SET T_basket=?,attrb=? WHERE T_Id=? (TransferFromXtf.java:1786)
+Info: flush(): single updates executed: 1 (StatementExecutionHelper.java:50)
+Info: getInsertStmt(): INSERT INTO a2b (T_Id,T_basket,a,b,attrab) VALUES (?,?,?,?,?) (TransferFromXtf.java:2399)
+Info: writeObject(): INSERT INTO a2b (T_Id,T_basket,a,b,attrab) VALUES (?,?,?,?,?) (TransferFromXtf.java:1786)
+Info: flush(): single updates executed: 1 (StatementExecutionHelper.java:50)
+Info: getInsertStmt(): INSERT INTO classa1 (T_Id,T_basket,T_Ili_Tid,attra) VALUES (?,?,?,?) (TransferFromXtf.java:2399)
+Info: writeObject(): INSERT INTO classa1 (T_Id,T_basket,T_Ili_Tid,attra) VALUES (?,?,?,?) (TransferFromXtf.java:1786)
+Info: flush(): single updates executed: 1 (StatementExecutionHelper.java:50)
+Info: writeObject(): INSERT INTO a2b (T_Id,T_basket,a,b,attrab) VALUES (?,?,?,?,?) (TransferFromXtf.java:1786)
+Info: flush(): single updates executed: 1 (StatementExecutionHelper.java:50)
+Info: deleteExistingObjectsHelper(): DELETE FROM classa1 WHERE T_Id in (8) (TransferFromXtf.java:1017)
+Info: doit(): ...EndTransferEvent done (TransferFromXtf.java:729)
+Info: object count 5
+Info: doitEnd(): write delayed objects (0)... (TransferFromXtf.java:758)
+Info: second validation pass...
+Info: validate multiplicity of role AssocUpdate1.TestA.a2b.a...
+Info: validate target of role AssocUpdate1.TestA.a2b.a...
+Info: validate target of role AssocUpdate1.TestA.a2b.b...
+Info: validate multiplicity of role AssocUpdate1.TestA.a2b.b...
+Info: close(): LinkPool KEY: size 4, filesize 0 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp465059609497991567> (BTree.java:396)
+Info: close(): LinkPool KEY: keySize min 0, max 0 (BTree.java:397)
+Info: close(): LinkPool KEY: valueSize min 0, max 0 (BTree.java:398)
+Info: close(): LinkPool VAL: filesize 48 </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp7360731147653380192> (BTreeImpl.java:78)
+Info: close(): LinkPool VAL: valueSize min 0, max 8, updates 1 (BTreeImpl.java:79)
+Info: close(): ObjectPool: filesize 564, updates 0, </var/folders/rp/xw19bm096bv14zzhq2ybnttm0000gn/T/ioxtmp7959686897130182949> (ObjPoolImpl2.java:69)
+Info: AssocUpdate1b.xtf: AssocUpdate1.TestA BID=AssocUpdate1.TestA
+Info:       2 objects in CLASS AssocUpdate1.TestA.ClassA1
+Info:       1 objects in CLASS AssocUpdate1.TestA.ClassB1
+Info:       2 objects in CLASS AssocUpdate1.TestA.a2b
+Info: ...update done

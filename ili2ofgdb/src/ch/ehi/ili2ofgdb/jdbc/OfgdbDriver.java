@@ -1,6 +1,8 @@
 package ch.ehi.ili2ofgdb.jdbc;
 
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
@@ -9,9 +11,6 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.Properties;
 import java.util.logging.Logger;
-
-import ch.ehi.openfgdb4j.OpenFgdb;
-import ch.ehi.openfgdb4j.OpenFgdbException;
 
 public class OfgdbDriver implements Driver {
     public static final String BASE_URL = "jdbc:ili2ofgdb:";
@@ -35,14 +34,17 @@ public class OfgdbDriver implements Driver {
             return null;
         }
         String dbPath = url.substring(BASE_URL.length());
-        OpenFgdb api = new OpenFgdb();
-        try {
-            File file = new File(dbPath);
-            long dbHandle = file.exists() ? api.open(file.getAbsolutePath()) : api.create(file.getAbsolutePath());
-            return new OfgdbConnection(api, dbHandle, url);
-        } catch (OpenFgdbException e) {
-            throw new SQLException("failed to open/create openfgdb database", e);
+        Path path = Paths.get(dbPath);
+        Path absolute = path.toAbsolutePath().normalize();
+        if (absolute.getParent() != null && !Files.exists(absolute.getParent())) {
+            try {
+                Files.createDirectories(absolute.getParent());
+            } catch (java.io.IOException e) {
+                throw new SQLException("failed to create directory for " + dbPath, e);
+            }
         }
+        OfgdbFileGdb backend = new OfgdbFileGdb(absolute);
+        return new OfgdbConnection(backend, url);
     }
 
     @Override

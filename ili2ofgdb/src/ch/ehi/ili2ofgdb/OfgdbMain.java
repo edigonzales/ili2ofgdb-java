@@ -18,11 +18,10 @@ public class OfgdbMain extends ch.ehi.ili2db.AbstractMain {
         config.setJdbcDriver(ch.ehi.ili2ofgdb.jdbc.OfgdbDriver.class.getName());
         config.setIdGenerator(ch.ehi.ili2db.base.TableBasedIdGen.class.getName());
         config.setIli2dbCustomStrategy(ch.ehi.ili2ofgdb.OfgdbMapping.class.getName());
-        config.setInitStrategy(ch.ehi.ili2ofgdb.InitOfgdbApi.class.getName());
         config.setOneGeomPerTable(true);
-        config.setFgdbCreateDomains(true);
-        config.setFgdbCreateRelationshipClasses(true);
-        config.setFgdbIncludeInactiveEnumValues(false);
+        config.setValue(OfgdbMapping.FGDB_CREATE_DOMAINS, Config.TRUE);
+        config.setValue(OfgdbMapping.FGDB_CREATE_RELATIONSHIP_CLASSES, Config.TRUE);
+        config.setValue(OfgdbMapping.FGDB_INCLUDE_INACTIVE_ENUM_VALUES, Config.FALSE);
     }
 
     @Override
@@ -94,14 +93,18 @@ public class OfgdbMain extends ch.ehi.ili2db.AbstractMain {
             argi++;
         } else if (isOption(arg, "--fgdbCreateDomains")) {
             argi++;
-            config.setFgdbCreateDomains(parseBooleanArgument(arg));
+            config.setValue(OfgdbMapping.FGDB_CREATE_DOMAINS, booleanArgument(parseBooleanArgument(arg)));
         } else if (isOption(arg, "--fgdbIncludeInactiveEnumValues")) {
             argi++;
-            config.setFgdbIncludeInactiveEnumValues(parseBooleanArgument(arg));
+            config.setValue(OfgdbMapping.FGDB_INCLUDE_INACTIVE_ENUM_VALUES, booleanArgument(parseBooleanArgument(arg)));
         } else if (isOption(arg, "--fgdbCreateRelationshipClasses")) {
             argi++;
-            config.setFgdbCreateRelationshipClasses(parseBooleanArgument(arg));
+            config.setValue(OfgdbMapping.FGDB_CREATE_RELATIONSHIP_CLASSES, booleanArgument(parseBooleanArgument(arg)));
         }
         return argi;
+    }
+
+    private static String booleanArgument(boolean value) {
+        return value ? Config.TRUE : Config.FALSE;
     }
 }

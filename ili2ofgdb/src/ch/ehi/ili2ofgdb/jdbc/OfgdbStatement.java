@@ -17,8 +17,7 @@ import java.util.regex.Pattern;
 
 import antlr.RecognitionException;
 import antlr.TokenStreamException;
-import ch.ehi.openfgdb4j.OpenFgdb;
-import ch.ehi.openfgdb4j.OpenFgdbException;
+import ch.ehi.ili2ofgdb.jdbc.OfgdbFileGdb;
 import ch.ehi.ili2ofgdb.jdbc.parser.SqlLexer;
 import ch.ehi.ili2ofgdb.jdbc.parser.SqlSyntax;
 import ch.ehi.ili2ofgdb.jdbc.sql.AbstractSelectStmt;
@@ -37,7 +36,7 @@ import ch.ehi.ili2ofgdb.jdbc.sql.StringConst;
 import ch.ehi.ili2ofgdb.jdbc.sql.Value;
 
 public class OfgdbStatement implements Statement {
-    private static final String BYTE_LITERAL_PREFIX = "__OFGDB_BYTES_B64__:";
+    private static final String BYTE_LITERAL_PREFIX = OfgdbSql.BYTE_LITERAL_PREFIX;
     private static final Pattern SELECT_PATTERN = Pattern.compile(
             "(?is)^\\s*SELECT\\s+(.+?)\\s+FROM\\s+((?:\"[^\"]+\"|[A-Za-z0-9_.$]+))(?:\\s+WHERE\\s+(.+?))?(?:\\s+ORDER\\s+BY\\s+(.+?))?\\s*$");
     private static final Pattern COUNT_ONLY_PATTERN = Pattern.compile(
@@ -77,7 +76,7 @@ public class OfgdbStatement implements Statement {
             throw new SQLException("empty SQL statement");
         }
         try {
-            conn.getApi().execSql(conn.getDbHandle(), normalizedSql);
+            conn.getBackend().executeUpdate(normalizedSql);
             trackSchemaMutation(normalizedSql);
             if (currentResultSet != null) {
                 currentResultSet.close();
@@ -85,8 +84,9 @@ public class OfgdbStatement implements Statement {
             }
             updateCount = 0;
             return updateCount;
-        } catch (OpenFgdbException e) {
-            throw new SQLException("failed to execute update <" + normalizedSql + ">", e);
+        } catch (SQLException e) {
+            throw new SQLException(
+                    "failed to execute update <" + normalizedSql + ">: " + e.getMessage(), e);
         }
     }
 
@@ -684,29 +684,15 @@ public class OfgdbStatement implements Statement {
             String orderByClause,
             List<String> requestedColumns,
             List<SelectValue> projection) throws SQLException {
-        OpenFgdb api = conn.getApi();
-        long tableHandle = 0L;
-        long cursorHandle = 0L;
         List<Map<String, Object>> rows = new ArrayList<Map<String, Object>>();
         List<String> columns = new ArrayList<String>();
         try {
             String resolvedTableName = conn.resolveTableName(tableName);
-            try {
-                tableHandle = api.openTable(conn.getDbHandle(), resolvedTableName);
-            } catch (OpenFgdbException e) {
-                if (!isTableNotFound(e)) {
-                    throw e;
-                }
-                conn.reopenSession();
-                resolvedTableName = conn.resolveTableName(tableName);
-                tableHandle = api.openTable(conn.getDbHandle(), resolvedTableName);
-            }
-            List<String> tableColumns = api.getFieldNames(tableHandle);
-            String effectiveFieldSpec = fieldSpec;
+            OfgdbFileGdb.TableData data = conn.getBackend().readRows(resolvedTableName);
+            List<String> tableColumns = data.columns;
             List<String> fetchColumns = new ArrayList<String>();
             if ("*".equals(fieldSpec)) {
                 fetchColumns.addAll(tableColumns);
-                effectiveFieldSpec = joinColumns(fetchColumns);
                 if (requestedColumns != null && !requestedColumns.isEmpty()) {
                     columns.addAll(requestedColumns);
                     for (String fetchColumn : fetchColumns) {
@@ -719,7 +705,6 @@ public class OfgdbStatement implements Statement {
                 }
             } else {
                 fetchColumns.addAll(canonicalizeColumns(splitColumns(fieldSpec), tableColumns));
-                effectiveFieldSpec = joinColumns(fetchColumns);
                 if (requestedColumns != null && !requestedColumns.isEmpty()) {
                     columns.addAll(requestedColumns);
                 } else {
@@ -728,102 +713,67 @@ public class OfgdbStatement implements Statement {
             }
 
             String where = whereClause;
-            if (projection != null && whereClause == null) {
+            if (projection != null && (where == null || where.trim().isEmpty())) {
                 where = buildWhereClause(null);
             }
-            cursorHandle = api.search(tableHandle, effectiveFieldSpec, where);
-            while (true) {
-                long rowHandle = api.fetchRow(cursorHandle);
-                if (rowHandle == 0L) {
-                    break;
+            OfgdbSql.Where condition = null;
+            if (where != null && !where.trim().isEmpty()) {
+                condition = OfgdbSql.Where.parse(where);
+            }
+            for (Map<String, Object> dataRow : data.rows) {
+                if (condition != null && !condition.matches(dataRow)) {
+                    continue;
                 }
-                try {
-                    Map<String, Object> baseRow = new HashMap<String, Object>();
-                    for (String column : fetchColumns) {
-                        baseRow.put(column, readRowValue(api, rowHandle, column));
-                    }
-                    Map<String, Object> outRow = new HashMap<String, Object>();
-                    if (projection == null || projection.isEmpty()) {
-                        for (String column : columns) {
-                            outRow.put(column, getIgnoreCase(baseRow, column));
-                        }
-                    } else {
-                        for (SelectValue selectValue : projection) {
-                            outRow.put(selectValue.getColumnName(), evaluateProjection(baseRow, selectValue));
-                        }
-                        for (String fetchColumn : fetchColumns) {
-                            if (!containsIgnoreCaseKey(outRow, fetchColumn)) {
-                                outRow.put(fetchColumn, getIgnoreCase(baseRow, fetchColumn));
-                            }
-                        }
-                    }
-                    rows.add(outRow);
-                } finally {
-                    api.closeRow(rowHandle);
+                Map<String, Object> baseRow = new HashMap<String, Object>();
+                for (String column : fetchColumns) {
+                    baseRow.put(column, getIgnoreCase(dataRow, column));
                 }
+                Map<String, Object> outRow = new HashMap<String, Object>();
+                if (projection == null || projection.isEmpty()) {
+                    for (String column : columns) {
+                        outRow.put(column, getIgnoreCase(baseRow, column));
+                    }
+                } else {
+                    for (SelectValue selectValue : projection) {
+                        outRow.put(selectValue.getColumnName(), evaluateProjection(baseRow, selectValue));
+                    }
+                    for (String fetchColumn : fetchColumns) {
+                        if (!containsIgnoreCaseKey(outRow, fetchColumn)) {
+                            outRow.put(fetchColumn, getIgnoreCase(baseRow, fetchColumn));
+                        }
+                    }
+                }
+                rows.add(outRow);
             }
             applyOrderBy(rows, columns, orderByClause);
             return new OfgdbResultSet(rows, columns);
-        } catch (OpenFgdbException e) {
+        } catch (SQLException e) {
+            throw e;
+        } catch (RuntimeException e) {
             throw new SQLException("failed to execute query", e);
-        } finally {
-            if (cursorHandle != 0L) {
-                try {
-                    api.closeCursor(cursorHandle);
-                } catch (OpenFgdbException ignore) {
-                }
-            }
-            if (tableHandle != 0L) {
-                try {
-                    api.closeTable(conn.getDbHandle(), tableHandle);
-                } catch (OpenFgdbException ignore) {
-                }
-            }
         }
     }
 
     private ResultSet executeCountQuery(QueryPlan plan) throws SQLException {
-        OpenFgdb api = conn.getApi();
-        long tableHandle = 0L;
-        long cursorHandle = 0L;
         long count = 0L;
         try {
             String resolvedTableName = conn.resolveTableName(plan.tableName);
-            try {
-                tableHandle = api.openTable(conn.getDbHandle(), resolvedTableName);
-            } catch (OpenFgdbException e) {
-                if (!isTableNotFound(e)) {
-                    throw e;
-                }
-                conn.reopenSession();
-                resolvedTableName = conn.resolveTableName(plan.tableName);
-                tableHandle = api.openTable(conn.getDbHandle(), resolvedTableName);
-            }
+            OfgdbFileGdb.TableData data = conn.getBackend().readRows(resolvedTableName);
             String where = plan.whereClause != null ? plan.whereClause : "";
-            cursorHandle = api.search(tableHandle, "*", where);
-            while (true) {
-                long rowHandle = api.fetchRow(cursorHandle);
-                if (rowHandle == 0L) {
-                    break;
+            OfgdbSql.Where condition = null;
+            if (!where.trim().isEmpty()) {
+                condition = OfgdbSql.Where.parse(where);
+            }
+            for (Map<String, Object> dataRow : data.rows) {
+                if (condition != null && !condition.matches(dataRow)) {
+                    continue;
                 }
                 count++;
-                api.closeRow(rowHandle);
             }
-        } catch (OpenFgdbException e) {
+        } catch (SQLException e) {
+            throw e;
+        } catch (RuntimeException e) {
             throw new SQLException("failed to execute count query", e);
-        } finally {
-            if (cursorHandle != 0L) {
-                try {
-                    api.closeCursor(cursorHandle);
-                } catch (OpenFgdbException ignore) {
-                }
-            }
-            if (tableHandle != 0L) {
-                try {
-                    api.closeTable(conn.getDbHandle(), tableHandle);
-                } catch (OpenFgdbException ignore) {
-                }
-            }
         }
         List<Map<String, Object>> rows = new ArrayList<Map<String, Object>>(1);
         Map<String, Object> row = new HashMap<String, Object>();
@@ -1232,102 +1182,11 @@ public class OfgdbStatement implements Statement {
     }
 
     static String encodeLiteral(Object value) {
-        if (value == null) {
-            return "NULL";
-        }
-        if (value instanceof Number) {
-            return value.toString();
-        }
-        if (value instanceof Boolean) {
-            return ((Boolean) value).booleanValue() ? "1" : "0";
-        }
-        if (value instanceof java.sql.Time) {
-            return "'1970-01-01 " + value.toString() + "'";
-        }
-        if (value instanceof java.sql.Timestamp) {
-            return "'" + value.toString().replace('T', ' ') + "'";
-        }
-        if (value instanceof java.sql.Date) {
-            return "'" + value.toString() + "'";
-        }
-        if (value instanceof byte[]) {
-            return "'" + BYTE_LITERAL_PREFIX + java.util.Base64.getEncoder().encodeToString((byte[]) value) + "'";
-        }
-        String text = value.toString().replace("'", "''");
-        return "'" + text + "'";
+        return OfgdbSql.encodeLiteral(value);
     }
 
     static Object parseValue(String value) {
-        if (value == null) {
-            return null;
-        }
-        String trimmed = value.trim();
-        if (trimmed.isEmpty()) {
-            return "";
-        }
-        if (trimmed.matches("-?\\d+")) {
-            try {
-                return Integer.valueOf(trimmed);
-            } catch (NumberFormatException ignore) {
-            }
-            try {
-                return Long.valueOf(trimmed);
-            } catch (NumberFormatException ignore) {
-            }
-        }
-        if (trimmed.matches("-?\\d+\\.\\d+")) {
-            try {
-                return new java.math.BigDecimal(trimmed);
-            } catch (NumberFormatException ignore) {
-            }
-        }
-        if (trimmed.matches("(?i)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")) {
-            return trimmed;
-        }
-        if (trimmed.startsWith(BYTE_LITERAL_PREFIX)) {
-            String b64 = trimmed.substring(BYTE_LITERAL_PREFIX.length());
-            try {
-                return java.util.Base64.getDecoder().decode(b64);
-            } catch (IllegalArgumentException ignore) {
-                return value;
-            }
-        }
-        return value;
-    }
-
-    private static Object readRowValue(OpenFgdb api, long rowHandle, String column) throws OpenFgdbException {
-        if (api.rowIsNull(rowHandle, column)) {
-            return null;
-        }
-        try {
-            byte[] blob = api.rowGetBlob(rowHandle, column);
-            if (blob != null) {
-                return blob;
-            }
-        } catch (OpenFgdbException e) {
-            if (!isTypeMismatch(e)) {
-                throw e;
-            }
-        }
-        try {
-            String textValue = api.rowGetString(rowHandle, column);
-            if (textValue != null) {
-                return parseValue(textValue);
-            }
-        } catch (OpenFgdbException e) {
-            if (!isTypeMismatch(e)) {
-                throw e;
-            }
-        }
-        return null;
-    }
-
-    private static boolean isTypeMismatch(OpenFgdbException ex) {
-        return ex != null && ex.getErrorCode() == OpenFgdb.OFGDB_ERR_INVALID_ARG;
-    }
-
-    private static boolean isTableNotFound(OpenFgdbException ex) {
-        return ex != null && ex.getErrorCode() == OpenFgdb.OFGDB_ERR_NOT_FOUND;
+        return OfgdbSql.parseValue(value);
     }
 
     private void ensureOpen() throws SQLException {

@@ -1,29 +1,28 @@
 package ch.ehi.ili2ofgdb;
 
-import java.io.File;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import ch.ehi.basics.logging.EhiLogger;
 import ch.ehi.ili2db.base.AbstractJdbcMapping;
+import ch.ehi.ili2db.base.DbNames;
 import ch.ehi.ili2db.base.Ili2cUtility;
 import ch.ehi.ili2db.fromxtf.EnumValueMap;
 import ch.ehi.ili2db.gui.Config;
 import ch.ehi.ili2db.mapping.NameMapping;
 import ch.ehi.ili2ofgdb.jdbc.OfgdbConnection;
-import ch.ehi.openfgdb4j.OpenFgdb;
-import ch.ehi.openfgdb4j.OpenFgdbException;
+import ch.ehi.ili2ofgdb.jdbc.OfgdbFileGdb;
 import ch.ehi.sqlgen.generator_impl.ofgdb.GeneratorOfgdb;
 import ch.ehi.sqlgen.repository.DbColBoolean;
 import ch.ehi.sqlgen.repository.DbColDecimal;
@@ -44,16 +43,45 @@ import ch.interlis.ili2c.metamodel.EnumTreeValueType;
 import ch.interlis.ili2c.metamodel.Enumeration;
 import ch.interlis.ili2c.metamodel.NumericType;
 import ch.interlis.ili2c.metamodel.PrecisionDecimal;
-import ch.interlis.ili2c.metamodel.TransferDescription;
 import ch.interlis.ili2c.metamodel.RoleDef;
+import ch.interlis.ili2c.metamodel.TransferDescription;
 import ch.interlis.ili2c.metamodel.Type;
 import ch.interlis.ili2c.metamodel.TypeAlias;
 import ch.interlis.iom_j.itf.ModelUtilities;
 
+/**
+ * ili2db custom mapping strategy for the file geodatabase.
+ *
+ * <p>Domains and relationship classes are the only file geodatabase concepts that the ili2db core
+ * does not produce through the JDBC/SQL interface, so this strategy takes care of them:
+ *
+ * <ul>
+ *   <li>Domain definitions are collected while the schema is mapped and created through the JDBC
+ *       connection when the mapping phase ends - before the DDL generator creates the tables. The
+ *       column carries the domain name as custom value, so the DDL generator can emit a
+ *       {@code DOMAIN} clause.
+ *   <li>Relationship classes are reconstructed after the schema import from the persisted mapping
+ *       tables ({@code T_ILI2DB_ATTRNAME} and {@code T_ILI2DB_TRAFO}) and the compiled INTERLIS
+ *       model. This avoids any change to the ili2db core.
+ * </ul>
+ */
 public class OfgdbMapping extends AbstractJdbcMapping {
-    private final Map<String, DomainDefinition> domains = new LinkedHashMap<String, DomainDefinition>();
-    private final Map<String, DomainAssignment> assignments = new LinkedHashMap<String, DomainAssignment>();
-    private final Map<String, RoleLinkDefinition> roleLinks = new LinkedHashMap<String, RoleLinkDefinition>();
+
+    /** Config key for domain creation ({@code --fgdbCreateDomains}). */
+    public static final String FGDB_CREATE_DOMAINS = "ch.ehi.ili2ofgdb.fgdbCreateDomains";
+    /** Config key for inactive enum values ({@code --fgdbIncludeInactiveEnumValues}). */
+    public static final String FGDB_INCLUDE_INACTIVE_ENUM_VALUES =
+            "ch.ehi.ili2ofgdb.fgdbIncludeInactiveEnumValues";
+    /** Config key for relationship classes ({@code --fgdbCreateRelationshipClasses}). */
+    public static final String FGDB_CREATE_RELATIONSHIP_CLASSES =
+            "ch.ehi.ili2ofgdb.fgdbCreateRelationshipClasses";
+    /** Custom value key that carries the domain name from the mapping to the DDL generator. */
+    public static final String DOMAIN_CUSTOM_KEY = "ch.ehi.ili2ofgdb.domain";
+
+    private static final String TRAFO_INHERITANCE_TAG = "ch.ehi.ili2db.inheritance";
+    private static final String TRAFO_EMBEDDED = "embedded";
+
+    final Map<String, DomainDefinition> domains = new LinkedHashMap<String, DomainDefinition>();
     private boolean createDomains = true;
     private boolean createRangeDomains = false;
     private boolean includeInactiveEnumValues = false;
@@ -62,18 +90,17 @@ public class OfgdbMapping extends AbstractJdbcMapping {
     private TransferDescription transferDescription = null;
     private String defaultXyResolution = null;
     private String defaultXyTolerance = null;
+    private Connection connection = null;
 
     @Override
     public void fromIliInit(Config config) {
         domains.clear();
-        assignments.clear();
-        roleLinks.clear();
         defaultXyResolution = config.getValue(GeneratorOfgdb.XY_RESOLUTION);
         defaultXyTolerance = config.getValue(GeneratorOfgdb.XY_TOLERANCE);
-        createDomains = config.isFgdbCreateDomains();
+        createDomains = isTrue(config, FGDB_CREATE_DOMAINS, true);
         createRangeDomains = config.isCreateCreateNumChecks();
-        includeInactiveEnumValues = config.isFgdbIncludeInactiveEnumValues();
-        createRelationships = config.isFgdbCreateRelationshipClasses();
+        includeInactiveEnumValues = isTrue(config, FGDB_INCLUDE_INACTIVE_ENUM_VALUES, false);
+        createRelationships = isTrue(config, FGDB_CREATE_RELATIONSHIP_CLASSES, true);
         transferDescription = (TransferDescription) config.getTransientObject(Config.TRANSIENT_MODEL);
         enumNameMapping = null;
         if (transferDescription != null) {
@@ -81,8 +108,30 @@ public class OfgdbMapping extends AbstractJdbcMapping {
         }
     }
 
+    private static boolean isTrue(Config config, String key, boolean defaultValue) {
+        String value = config.getValue(key);
+        if (value == null) {
+            return defaultValue;
+        }
+        return Config.TRUE.equalsIgnoreCase(value);
+    }
+
     @Override
     public void fromIliEnd(Config config) {
+        if (connection == null || !createDomains || domains.isEmpty()) {
+            return;
+        }
+        try {
+            createDomains(resolveBackend(connection));
+        } catch (SQLException ex) {
+            throw new IllegalStateException("ili2ofgdb: failed to create domains", ex);
+        }
+    }
+
+    @Override
+    public void postConnect(Connection conn, Config config) {
+        connection = conn;
+        enforceSingleGeometryPerTable(config);
     }
 
     @Override
@@ -104,15 +153,13 @@ public class OfgdbMapping extends AbstractJdbcMapping {
                 return;
             }
             String booleanDomainName = resolveBooleanDomainName(rootAliasDomain);
-            registerCodedDomainAssignment(sqlTableDef, sqlColDef, booleanDomainName, resolveFieldType(sqlColDef), buildBooleanValues());
+            registerCodedDomain(sqlTableDef, sqlColDef, booleanDomainName, resolveFieldType(sqlColDef),
+                    buildBooleanValues());
             return;
         }
         if (effectiveType instanceof AbstractEnumerationType) {
             Element enumOwner = resolveEnumOwner(iliAttrDef, originalType, rootAliasDomain);
-            registerCodedDomainAssignment(
-                    sqlTableDef,
-                    sqlColDef,
-                    resolveDomainName(iliAttrDef),
+            registerCodedDomain(sqlTableDef, sqlColDef, resolveDomainName(iliAttrDef),
                     resolveFieldType(sqlColDef),
                     buildEnumValues(enumOwner, (AbstractEnumerationType) effectiveType));
             return;
@@ -120,93 +167,21 @@ public class OfgdbMapping extends AbstractJdbcMapping {
         if (createRangeDomains && isNumericRangeColumn(sqlColDef)) {
             RangeBounds rangeBounds = resolveNumericRange(effectiveType);
             if (rangeBounds != null) {
-                registerRangeDomainAssignment(
-                        sqlTableDef,
-                        sqlColDef,
-                        resolveDomainName(iliAttrDef),
-                        resolveFieldType(sqlColDef),
-                        rangeBounds.minValue,
-                        rangeBounds.minInclusive,
-                        rangeBounds.maxValue,
-                        rangeBounds.maxInclusive);
+                registerRangeDomain(sqlTableDef, sqlColDef, resolveDomainName(iliAttrDef),
+                        resolveFieldType(sqlColDef), rangeBounds);
             }
         }
-        return;
-    }
-
-    @Override
-    public void fixupRoleLink(DbTable dbTable, DbColumn dbColId, AssociationDef roleOwner, RoleDef role,
-            DbTableName targetTable, String targetPk, boolean embedded) {
-        if (!createRelationships || dbTable == null || dbColId == null || roleOwner == null || role == null || targetTable == null
-                || targetPk == null) {
-            return;
-        }
-        RoleLinkDefinition roleLinkDefinition = new RoleLinkDefinition();
-        roleLinkDefinition.associationScopedName = roleOwner.getScopedName(null);
-        roleLinkDefinition.roleName = role.getName();
-        roleLinkDefinition.sourceTable = dbTable.getName().getName();
-        roleLinkDefinition.sourceFkColumn = dbColId.getName();
-        roleLinkDefinition.targetTable = targetTable.getName();
-        roleLinkDefinition.targetPkColumn = targetPk;
-        roleLinkDefinition.forwardLabel = role.getOppEnd() != null ? role.getOppEnd().getName() : role.getName();
-        roleLinkDefinition.backwardLabel = role.getName();
-        roleLinkDefinition.embedded = embedded;
-        roleLinkDefinition.attributed = roleOwner.getAttributes().hasNext();
-        roleLinkDefinition.cardinality = calcCardinality(role);
-
-        String linkKey = roleLinkDefinition.associationScopedName + "|" + roleLinkDefinition.roleName + "|" + roleLinkDefinition.sourceTable
-                + "|" + roleLinkDefinition.sourceFkColumn;
-        roleLinks.put(linkKey, roleLinkDefinition);
     }
 
     @Override
     public void postPostScript(Connection conn, Config config) {
-        if ((!createDomains || domains.isEmpty()) && (!createRelationships || roleLinks.isEmpty())) {
+        if (!createRelationships) {
             return;
         }
-        OpenFgdb api = null;
-        long dbHandle = 0L;
-        boolean closeHandle = false;
-        String handleSource = "jdbc-connection";
         try {
-            OfgdbConnection ofgdbConn = resolveOfgdbConnection(conn);
-            if (ofgdbConn != null) {
-                api = ofgdbConn.getOpenFgdbApi();
-                dbHandle = ofgdbConn.getOpenFgdbHandle();
-            } else {
-                String dbFile = config.getDbfile();
-                if (dbFile == null) {
-                    EhiLogger.logAdaption("ili2ofgdb: missing --dbfile and no JDBC handle; skip domain/relationship post processing");
-                    return;
-                }
-                File dbPath = new File(dbFile);
-                api = new OpenFgdb();
-                handleSource = "dbfile";
-                closeHandle = true;
-                if (dbPath.exists()) {
-                    dbHandle = api.open(dbPath.getAbsolutePath());
-                } else {
-                    dbHandle = api.create(dbPath.getAbsolutePath());
-                }
-            }
-            if (createDomains) {
-                createDomains(api, dbHandle);
-            }
-            if (createRelationships) {
-                createRelationships(api, dbHandle);
-            }
+            createRelationships(resolveBackend(conn));
         } catch (SQLException ex) {
-            throw new IllegalStateException("ili2ofgdb post processing failed while resolving " + handleSource + " handle", ex);
-        } catch (OpenFgdbException ex) {
-            throw new IllegalStateException("ili2ofgdb post processing failed using " + handleSource + " handle", ex);
-        } finally {
-            if (closeHandle && api != null && dbHandle != 0L) {
-                try {
-                    api.close(dbHandle);
-                } catch (OpenFgdbException ex) {
-                    EhiLogger.logAdaption("ili2ofgdb: failed to close openfgdb handle: " + ex.getMessage());
-                }
-            }
+            throw new IllegalStateException("ili2ofgdb: failed to create relationship classes", ex);
         }
     }
 
@@ -223,13 +198,16 @@ public class OfgdbMapping extends AbstractJdbcMapping {
         return null;
     }
 
-    @Override
-    public void preConnect(String url, String dbusr, String dbpwd, Config config) {
-        enforceSingleGeometryPerTable(config);
+    private OfgdbFileGdb resolveBackend(Connection conn) throws SQLException {
+        OfgdbConnection ofgdbConn = resolveOfgdbConnection(conn);
+        if (ofgdbConn == null) {
+            throw new SQLException("connection is not a file geodatabase connection");
+        }
+        return ofgdbConn.getBackend();
     }
 
     @Override
-    public void postConnect(Connection conn, Config config) {
+    public void preConnect(String url, String dbusr, String dbpwd, Config config) {
         enforceSingleGeometryPerTable(config);
     }
 
@@ -244,96 +222,115 @@ public class OfgdbMapping extends AbstractJdbcMapping {
         config.setOneGeomPerTable(true);
     }
 
-    private void createDomains(OpenFgdb api, long dbHandle) throws OpenFgdbException {
-        Set<String> existingDomains = new HashSet<String>(api.listDomains(dbHandle));
-        Set<String> existingAssignments = readExistingDomainAssignments(api, dbHandle);
-        Map<String, String> availableTables = readTableNameIndex(api, dbHandle);
-        Map<String, Set<String>> tableColumns = new LinkedHashMap<String, Set<String>>();
+    // ------------------------------------------------------------------
+    // Domains
+    // ------------------------------------------------------------------
+
+    private void createDomains(OfgdbFileGdb backend) throws SQLException {
+        Set<String> existingDomains = new HashSet<String>();
+        for (String name : backend.listDomains()) {
+            existingDomains.add(normalizeName(name));
+        }
         for (DomainDefinition domain : domains.values()) {
-            if (existingDomains.contains(domain.domainName)) {
+            if (existingDomains.contains(normalizeName(domain.domainName))) {
                 continue;
             }
             if (domain.kind == DomainKind.RANGE) {
-                try {
-                    api.createRangeDomain(
-                            dbHandle,
-                            domain.domainName,
-                            domain.fieldType,
-                            domain.rangeMinValue,
-                            domain.rangeMinInclusive,
-                            domain.rangeMaxValue,
-                            domain.rangeMaxInclusive);
-                } catch (OpenFgdbException ex) {
-                    if (isKnownBigIntRangeDomainLimitation(domain.fieldType, ex)) {
-                        EhiLogger.logAdaption(
-                                "ili2ofgdb: skip BIGINT range domain " + domain.domainName
-                                        + "; current openfgdb4j/GDAL backend does not support creating this FileGeoDatabase domain on Windows");
-                        continue;
-                    }
-                    throw ex;
-                }
+                backend.createRangeDomain(domain.domainName, domain.fieldType,
+                        domain.rangeMinValue, domain.rangeMinInclusive,
+                        domain.rangeMaxValue, domain.rangeMaxInclusive);
             } else {
-                api.createCodedDomain(dbHandle, domain.domainName, domain.fieldType);
+                backend.createCodedDomain(domain.domainName, domain.fieldType, domain.codedValues);
             }
-            existingDomains.add(domain.domainName);
-            if (domain.kind == DomainKind.CODED) {
-                for (Map.Entry<String, String> codedValue : domain.codedValues.entrySet()) {
-                    api.addCodedValue(dbHandle, domain.domainName, codedValue.getKey(), codedValue.getValue());
-                }
-            }
-        }
-        for (DomainAssignment assignment : assignments.values()) {
-            if (!existingDomains.contains(assignment.domainName)) {
-                continue;
-            }
-            String targetTable = resolveName(availableTables, assignment.tableName);
-            if (targetTable == null) {
-                EhiLogger.logAdaption("ili2ofgdb: skip domain assignment; table not found: " + assignment.tableName);
-                continue;
-            }
-            Set<String> columns = tableColumns.get(normalizeName(targetTable));
-            if (columns == null) {
-                columns = readColumnNameIndex(api, dbHandle, targetTable);
-                tableColumns.put(normalizeName(targetTable), columns);
-            }
-            if (!columns.contains(normalizeName(assignment.columnName))) {
-                EhiLogger.logAdaption("ili2ofgdb: skip domain assignment; column not found: "
-                        + targetTable + "." + assignment.columnName);
-                continue;
-            }
-            String assignmentKey = normalizeAssignmentKey(assignment.domainName, targetTable, assignment.columnName);
-            if (existingAssignments.contains(assignmentKey)) {
-                continue;
-            }
-            try {
-                api.assignDomainToField(dbHandle, targetTable, assignment.columnName, assignment.domainName);
-                existingAssignments.add(assignmentKey);
-            } catch (OpenFgdbException ex) {
-                if (ex.getErrorCode() == OpenFgdb.OFGDB_ERR_NOT_FOUND) {
-                    EhiLogger.logAdaption("ili2ofgdb: skip domain assignment; target no longer available: "
-                            + targetTable + "." + assignment.columnName);
-                    continue;
-                }
-                throw ex;
-            }
+            existingDomains.add(normalizeName(domain.domainName));
         }
     }
 
-    static boolean isKnownBigIntRangeDomainLimitation(String fieldType, OpenFgdbException ex) {
-        if (!"BIGINT".equalsIgnoreCase(fieldType) || ex == null) {
-            return false;
+    private void registerCodedDomain(DbTable sqlTableDef, DbColumn sqlColDef, String domainName,
+            String fieldType, Map<String, String> codedValues) {
+        String sanitizedDomainName = sanitizeName(domainName);
+        DomainDefinition domainDefinition = domains.get(sanitizedDomainName);
+        if (domainDefinition == null) {
+            domainDefinition = new DomainDefinition();
+            domainDefinition.kind = DomainKind.CODED;
+            domainDefinition.domainName = sanitizedDomainName;
+            domainDefinition.fieldType = fieldType;
+            domainDefinition.codedValues.putAll(codedValues);
+            domains.put(sanitizedDomainName, domainDefinition);
+        } else {
+            assertCompatibleCodedDomain(domainName, domainDefinition, fieldType, codedValues);
         }
-        String message = ex.getMessage();
-        return message != null && message.contains("Unsupported field type for FileGeoDatabase domain")
-                && message.contains("requestedType=BIGINT");
+        registerDomainReference(sqlTableDef, sqlColDef, sanitizedDomainName);
     }
 
-    private void createRelationships(OpenFgdb api, long dbHandle) throws OpenFgdbException {
-        Set<String> existingRelationships = new HashSet<String>(api.listRelationships(dbHandle));
-        Map<String, String> availableTables = readTableNameIndex(api, dbHandle);
-        Map<String, Set<String>> tableColumns = new LinkedHashMap<String, Set<String>>();
-        List<RoleLinkDefinition> orderedRoleLinks = new ArrayList<RoleLinkDefinition>(roleLinks.values());
-        Collections.sort(orderedRoleLinks, new Comparator<RoleLinkDefinition>() {
+    private void registerRangeDomain(DbTable sqlTableDef, DbColumn sqlColDef, String domainName,
+            String fieldType, RangeBounds rangeBounds) {
+        String sanitizedDomainName = sanitizeName(domainName);
+        DomainDefinition domainDefinition = domains.get(sanitizedDomainName);
+        if (domainDefinition == null) {
+            domainDefinition = new DomainDefinition();
+            domainDefinition.kind = DomainKind.RANGE;
+            domainDefinition.domainName = sanitizedDomainName;
+            domainDefinition.fieldType = fieldType;
+            domainDefinition.rangeMinValue = rangeBounds.minValue;
+            domainDefinition.rangeMinInclusive = rangeBounds.minInclusive;
+            domainDefinition.rangeMaxValue = rangeBounds.maxValue;
+            domainDefinition.rangeMaxInclusive = rangeBounds.maxInclusive;
+            domains.put(sanitizedDomainName, domainDefinition);
+        } else {
+            assertCompatibleRangeDomain(domainName, domainDefinition, fieldType, rangeBounds);
+        }
+        registerDomainReference(sqlTableDef, sqlColDef, sanitizedDomainName);
+    }
+
+    private void registerDomainReference(DbTable sqlTableDef, DbColumn sqlColDef, String sanitizedDomainName) {
+        sqlColDef.setCustomValue(DOMAIN_CUSTOM_KEY, sanitizedDomainName);
+    }
+
+    private void assertCompatibleCodedDomain(String rawDomainName, DomainDefinition existing,
+            String fieldType, Map<String, String> codedValues) {
+        if (existing.kind != DomainKind.CODED) {
+            throw new IllegalStateException("ili2ofgdb: domain name collision between range and coded domain: " + rawDomainName);
+        }
+        if (!existing.fieldType.equals(fieldType)) {
+            throw new IllegalStateException("ili2ofgdb: domain field type mismatch for " + rawDomainName);
+        }
+        if (!existing.codedValues.equals(codedValues)) {
+            throw new IllegalStateException("ili2ofgdb: coded domain definition mismatch for " + rawDomainName);
+        }
+    }
+
+    private void assertCompatibleRangeDomain(String rawDomainName, DomainDefinition existing,
+            String fieldType, RangeBounds rangeBounds) {
+        if (existing.kind != DomainKind.RANGE) {
+            throw new IllegalStateException("ili2ofgdb: domain name collision between coded and range domain: " + rawDomainName);
+        }
+        if (!existing.fieldType.equals(fieldType)
+                || !equal(existing.rangeMinValue, rangeBounds.minValue)
+                || existing.rangeMinInclusive != rangeBounds.minInclusive
+                || !equal(existing.rangeMaxValue, rangeBounds.maxValue)
+                || existing.rangeMaxInclusive != rangeBounds.maxInclusive) {
+            throw new IllegalStateException("ili2ofgdb: range domain definition mismatch for " + rawDomainName);
+        }
+    }
+
+    private static boolean equal(String left, String right) {
+        return left == null ? right == null : left.equals(right);
+    }
+
+    // ------------------------------------------------------------------
+    // Relationships
+    // ------------------------------------------------------------------
+
+    private void createRelationships(OfgdbFileGdb backend) throws SQLException {
+        if (transferDescription == null) {
+            return;
+        }
+        List<RoleLinkDefinition> roleLinks = collectRoleLinks(backend);
+        if (roleLinks.isEmpty()) {
+            return;
+        }
+        Collections.sort(roleLinks, new Comparator<RoleLinkDefinition>() {
             @Override
             public int compare(RoleLinkDefinition lhs, RoleLinkDefinition rhs) {
                 int scopedCompare = lhs.associationScopedName.compareTo(rhs.associationScopedName);
@@ -351,167 +348,193 @@ public class OfgdbMapping extends AbstractJdbcMapping {
                 return lhs.sourceFkColumn.compareTo(rhs.sourceFkColumn);
             }
         });
+        Set<String> existingRelationships = new HashSet<String>();
+        for (String name : backend.listRelationships()) {
+            existingRelationships.add(normalizeName(name));
+        }
         Set<String> relationshipNames = new HashSet<String>();
-        for (RoleLinkDefinition roleLink : orderedRoleLinks) {
-            String originTable = resolveName(availableTables, roleLink.targetTable);
-            String destinationTable = resolveName(availableTables, roleLink.sourceTable);
-            if (originTable == null || destinationTable == null) {
+        for (RoleLinkDefinition roleLink : roleLinks) {
+            if ("m:n".equalsIgnoreCase(roleLink.cardinality)) {
+                EhiLogger.logAdaption(
+                        "ili2ofgdb: skip many-to-many relationship class " + roleLink.associationScopedName
+                                + "; the association table already carries the mapping");
+                continue;
+            }
+            String originTable = backend.resolveTableName(roleLink.targetTable);
+            String destinationTable = backend.resolveTableName(roleLink.sourceTable);
+            if (!hasTable(backend, originTable) || !hasTable(backend, destinationTable)) {
                 EhiLogger.logAdaption("ili2ofgdb: skip relationship; table missing: "
                         + roleLink.targetTable + " -> " + roleLink.sourceTable);
                 continue;
             }
-            Set<String> originColumns = tableColumns.get(normalizeName(originTable));
-            if (originColumns == null) {
-                originColumns = readColumnNameIndex(api, dbHandle, originTable);
-                tableColumns.put(normalizeName(originTable), originColumns);
-            }
-            Set<String> destinationColumns = tableColumns.get(normalizeName(destinationTable));
-            if (destinationColumns == null) {
-                destinationColumns = readColumnNameIndex(api, dbHandle, destinationTable);
-                tableColumns.put(normalizeName(destinationTable), destinationColumns);
-            }
-            if (!originColumns.contains(normalizeName(roleLink.targetPkColumn))
-                    || !destinationColumns.contains(normalizeName(roleLink.sourceFkColumn))) {
+            if (!hasColumn(backend, originTable, roleLink.targetPkColumn)
+                    || !hasColumn(backend, destinationTable, roleLink.sourceFkColumn)) {
                 EhiLogger.logAdaption("ili2ofgdb: skip relationship; key column missing: "
                         + originTable + "." + roleLink.targetPkColumn + " / "
                         + destinationTable + "." + roleLink.sourceFkColumn);
                 continue;
             }
-            String relationshipName = uniqueRelationshipName(roleLink, relationshipNames, destinationTable);
-            if (existingRelationships.contains(relationshipName)) {
+            String relationshipName = uniqueRelationshipName(roleLink, relationshipNames);
+            if (existingRelationships.contains(normalizeName(relationshipName))) {
                 continue;
             }
-            api.createRelationshipClass(
-                    dbHandle,
-                    relationshipName,
-                    originTable,
-                    destinationTable,
-                    roleLink.targetPkColumn,
-                    roleLink.sourceFkColumn,
-                    roleLink.forwardLabel,
-                    roleLink.backwardLabel,
-                    roleLink.cardinality,
-                    false,
-                    roleLink.attributed);
-            existingRelationships.add(relationshipName);
+            backend.createRelationshipClass(relationshipName, originTable, destinationTable,
+                    roleLink.targetPkColumn, roleLink.sourceFkColumn,
+                    roleLink.forwardLabel, roleLink.backwardLabel, roleLink.cardinality, false);
+            existingRelationships.add(normalizeName(relationshipName));
         }
     }
 
-    private Set<String> readExistingDomainAssignments(OpenFgdb api, long dbHandle) {
-        Set<String> existingAssignments = new HashSet<String>();
-        long tableHandle = 0L;
-        long cursorHandle = 0L;
-        try {
-            tableHandle = api.openTable(dbHandle, "GDB_Items");
-            cursorHandle = api.search(tableHandle, "Name,Definition", "");
-            Map<String, String> tableDefinitionByName = new LinkedHashMap<String, String>();
-            while (true) {
-                long rowHandle = api.fetchRow(cursorHandle);
-                if (rowHandle == 0L) {
-                    break;
-                }
-                try {
-                    String itemName = api.rowGetString(rowHandle, "Name");
-                    if (itemName == null) {
-                        continue;
-                    }
-                    String definition = api.rowGetString(rowHandle, "Definition");
-                    tableDefinitionByName.put(normalizeName(itemName), definition);
-                } finally {
-                    api.closeRow(rowHandle);
-                }
-            }
-            for (DomainAssignment assignment : assignments.values()) {
-                String definition = tableDefinitionByName.get(normalizeName(assignment.tableName));
-                if (!hasDomainAssignment(definition, assignment.columnName, assignment.domainName)) {
-                    continue;
-                }
-                existingAssignments.add(normalizeAssignmentKey(assignment.domainName, assignment.tableName, assignment.columnName));
-            }
-        } catch (OpenFgdbException ex) {
-            EhiLogger.logAdaption("ili2ofgdb: unable to read existing domain assignments: " + ex.getMessage());
-        } finally {
-            if (cursorHandle != 0L) {
-                try {
-                    api.closeCursor(cursorHandle);
-                } catch (OpenFgdbException ex) {
-                    EhiLogger.logAdaption("ili2ofgdb: failed to close assignment cursor: " + ex.getMessage());
-                }
-            }
-            if (tableHandle != 0L) {
-                try {
-                    api.closeTable(dbHandle, tableHandle);
-                } catch (OpenFgdbException ex) {
-                    EhiLogger.logAdaption("ili2ofgdb: failed to close assignment table: " + ex.getMessage());
-                }
-            }
-        }
-        return existingAssignments;
-    }
-
-    private boolean hasDomainAssignment(String tableDefinition, String columnName, String domainName) {
-        if (tableDefinition == null || columnName == null || domainName == null) {
-            return false;
-        }
-        String quotedColumn = Pattern.quote(columnName);
-        Pattern fieldPattern = Pattern.compile(
-                "(?is)<GPFieldInfoEx\\b[^>]*>.*?<Name>\\s*" + quotedColumn + "\\s*</Name>.*?</GPFieldInfoEx>");
-        Matcher fieldMatcher = fieldPattern.matcher(tableDefinition);
-        while (fieldMatcher.find()) {
-            String fieldBlock = fieldMatcher.group();
-            Pattern domainPattern = Pattern.compile("(?is)<DomainName>\\s*" + Pattern.quote(domainName) + "\\s*</DomainName>");
-            if (domainPattern.matcher(fieldBlock).find()) {
+    private boolean hasTable(OfgdbFileGdb backend, String tableName) throws SQLException {
+        for (String name : backend.listTableNames()) {
+            if (name.equalsIgnoreCase(tableName)) {
                 return true;
             }
         }
         return false;
     }
 
-    private String normalizeAssignmentKey(String domainName, String tableName, String columnName) {
-        return normalizeName(domainName) + "|" + normalizeName(tableName) + "|" + normalizeName(columnName);
-    }
-
-    private Map<String, String> readTableNameIndex(OpenFgdb api, long dbHandle) throws OpenFgdbException {
-        Map<String, String> byNormalizedName = new LinkedHashMap<String, String>();
-        for (String tableName : api.listTableNames(dbHandle)) {
-            byNormalizedName.put(normalizeName(tableName), tableName);
-        }
-        return byNormalizedName;
-    }
-
-    private Set<String> readColumnNameIndex(OpenFgdb api, long dbHandle, String tableName) throws OpenFgdbException {
-        Set<String> columns = new HashSet<String>();
-        long tableHandle = 0L;
-        try {
-            tableHandle = api.openTable(dbHandle, tableName);
-            for (String column : api.getFieldNames(tableHandle)) {
-                columns.add(normalizeName(column));
+    private boolean hasColumn(OfgdbFileGdb backend, String tableName, String columnName) throws SQLException {
+        for (OfgdbFileGdb.ColumnInfo column : backend.columns(tableName)) {
+            if (column.name.equalsIgnoreCase(columnName)) {
+                return true;
             }
-            return columns;
+        }
+        return false;
+    }
+
+    /**
+     * Reconstructs the role links from the persisted ili2db mapping tables and the compiled model.
+     */
+    private List<RoleLinkDefinition> collectRoleLinks(OfgdbFileGdb backend) throws SQLException {
+        Map<String, String> inheritanceTrafo = readInheritanceTrafo();
+        List<RoleLinkDefinition> result = new ArrayList<RoleLinkDefinition>();
+        if (!hasTable(backend, DbNames.ATTRNAME_TAB)) {
+            return result;
+        }
+        Connection conn = connection;
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery("SELECT " + DbNames.ATTRNAME_TAB_ILINAME_COL + ","
+                    + DbNames.ATTRNAME_TAB_SQLNAME_COL + "," + DbNames.ATTRNAME_TAB_COLOWNER_COL + ","
+                    + DbNames.ATTRNAME_TAB_TARGET_COL + " FROM " + DbNames.ATTRNAME_TAB);
+            while (rs.next()) {
+                String iliName = rs.getString(1);
+                String sqlName = rs.getString(2);
+                String ownerTable = rs.getString(3);
+                String targetTable = rs.getString(4);
+                if (iliName == null || sqlName == null || ownerTable == null || targetTable == null) {
+                    continue;
+                }
+                Element element = transferDescription.getElement(iliName);
+                if (!(element instanceof RoleDef)) {
+                    continue;
+                }
+                RoleDef role = (RoleDef) element;
+                RoleLinkDefinition roleLink = new RoleLinkDefinition();
+                roleLink.associationScopedName = parentScopedName(iliName);
+                roleLink.roleName = role.getName();
+                roleLink.sourceTable = ownerTable;
+                roleLink.sourceFkColumn = sqlName;
+                roleLink.targetTable = targetTable;
+                roleLink.targetPkColumn = DbNames.T_ID_COL;
+                roleLink.forwardLabel = role.getOppEnd() != null ? role.getOppEnd().getName() : role.getName();
+                roleLink.backwardLabel = role.getName();
+                roleLink.embedded = TRAFO_EMBEDDED.equalsIgnoreCase(
+                        inheritanceTrafo.get(normalizeName(roleLink.associationScopedName)));
+                roleLink.attributed = isAttributed(roleLink.associationScopedName);
+                roleLink.cardinality = calcCardinality(role);
+                result.add(roleLink);
+            }
         } finally {
-            if (tableHandle != 0L) {
-                try {
-                    api.closeTable(dbHandle, tableHandle);
-                } catch (OpenFgdbException ex) {
-                    EhiLogger.logAdaption("ili2ofgdb: failed to close table handle for " + tableName + ": " + ex.getMessage());
+            if (rs != null) {
+                rs.close();
+            }
+            if (stmt != null) {
+                stmt.close();
+            }
+        }
+        return result;
+    }
+
+    private Map<String, String> readInheritanceTrafo() throws SQLException {
+        Map<String, String> result = new LinkedHashMap<String, String>();
+        if (connection == null) {
+            return result;
+        }
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            stmt = connection.createStatement();
+            rs = stmt.executeQuery("SELECT " + DbNames.TRAFO_TAB_ILINAME_COL + ","
+                    + DbNames.TRAFO_TAB_TAG_COL + "," + DbNames.TRAFO_TAB_SETTING_COL + " FROM "
+                    + DbNames.TRAFO_TAB);
+            while (rs.next()) {
+                if (TRAFO_INHERITANCE_TAG.equals(rs.getString(2))) {
+                    result.put(normalizeName(rs.getString(1)), rs.getString(3));
                 }
             }
+        } catch (SQLException ex) {
+            // mapping tables may not exist (for example when only pre/post scripts are run)
+            return result;
+        } finally {
+            if (rs != null) {
+                rs.close();
+            }
+            if (stmt != null) {
+                stmt.close();
+            }
         }
+        return result;
     }
 
-    private String resolveName(Map<String, String> availableByNormalizedName, String requestedName) {
-        if (requestedName == null) {
-            return null;
-        }
-        return availableByNormalizedName.get(normalizeName(requestedName));
+    private static String parentScopedName(String scopedName) {
+        int dot = scopedName.lastIndexOf('.');
+        return dot > 0 ? scopedName.substring(0, dot) : scopedName;
     }
 
-    private String normalizeName(String value) {
-        if (value == null) {
-            return "";
+    private boolean isAttributed(String associationScopedName) {
+        if (transferDescription == null) {
+            return false;
         }
-        return value.trim().toUpperCase(Locale.ROOT);
+        Element element = transferDescription.getElement(associationScopedName);
+        if (element instanceof AssociationDef) {
+            return ((AssociationDef) element).getAttributes().hasNext();
+        }
+        return false;
     }
+
+    private String calcCardinality(RoleDef role) {
+        long max = role.getCardinality().getMaximum();
+        long oppMax = role.getOppEnd() != null ? role.getOppEnd().getCardinality().getMaximum() : 1;
+        boolean many = max > 1 || max == Cardinality.UNBOUND;
+        boolean oppMany = oppMax > 1 || oppMax == Cardinality.UNBOUND;
+        if (!many && !oppMany) {
+            return "1:1";
+        }
+        if (many && oppMany) {
+            return "m:n";
+        }
+        return "1:n";
+    }
+
+    private String uniqueRelationshipName(RoleLinkDefinition roleLink, Set<String> usedNames) {
+        String base = sanitizeName("_" + roleLink.associationScopedName + "_" + roleLink.roleName);
+        String name = base;
+        int idx = 2;
+        while (usedNames.contains(name)) {
+            name = base + "_" + idx;
+            idx++;
+        }
+        usedNames.add(name);
+        return name;
+    }
+
+    // ------------------------------------------------------------------
+    // Model helpers
+    // ------------------------------------------------------------------
 
     private String resolveFieldType(DbColumn sqlColDef) {
         if (sqlColDef instanceof DbColBoolean) {
@@ -525,9 +548,6 @@ public class OfgdbMapping extends AbstractJdbcMapping {
                 return "BIGINT";
             }
             return "INTEGER";
-        }
-        if (sqlColDef instanceof DbColVarchar) {
-            return "STRING";
         }
         return "STRING";
     }
@@ -564,7 +584,8 @@ public class OfgdbMapping extends AbstractJdbcMapping {
         if (isBooleanByTypeSignature(effectiveType) || isBooleanByTypeSignature(originalType)) {
             return true;
         }
-        if (transferDescription != null && originalType != null && Ili2cUtility.isBoolean(transferDescription, originalType)) {
+        if (transferDescription != null && originalType != null
+                && Ili2cUtility.isBoolean(transferDescription, originalType)) {
             return true;
         }
         if (rootAliasDomain != null && transferDescription != null
@@ -610,96 +631,6 @@ public class OfgdbMapping extends AbstractJdbcMapping {
         rangeBounds.minValue = min.toString();
         rangeBounds.maxValue = max.toString();
         return rangeBounds;
-    }
-
-    private void registerCodedDomainAssignment(DbTable sqlTableDef, DbColumn sqlColDef, String domainName, String fieldType,
-            Map<String, String> codedValues) {
-        String sanitizedDomainName = sanitizeName(domainName);
-
-        DomainDefinition domainDefinition = domains.get(sanitizedDomainName);
-        if (domainDefinition == null) {
-            domainDefinition = new DomainDefinition();
-            domainDefinition.kind = DomainKind.CODED;
-            domainDefinition.domainName = sanitizedDomainName;
-            domainDefinition.fieldType = fieldType;
-            domainDefinition.codedValues.putAll(codedValues);
-            domains.put(sanitizedDomainName, domainDefinition);
-        } else {
-            assertCompatibleCodedDomain(domainName, domainDefinition, fieldType, codedValues);
-        }
-        registerDomainReference(sqlTableDef, sqlColDef, sanitizedDomainName);
-    }
-
-    private void registerRangeDomainAssignment(
-            DbTable sqlTableDef,
-            DbColumn sqlColDef,
-            String domainName,
-            String fieldType,
-            String minValue,
-            boolean minInclusive,
-            String maxValue,
-            boolean maxInclusive) {
-        String sanitizedDomainName = sanitizeName(domainName);
-
-        DomainDefinition domainDefinition = domains.get(sanitizedDomainName);
-        if (domainDefinition == null) {
-            domainDefinition = new DomainDefinition();
-            domainDefinition.kind = DomainKind.RANGE;
-            domainDefinition.domainName = sanitizedDomainName;
-            domainDefinition.fieldType = fieldType;
-            domainDefinition.rangeMinValue = minValue;
-            domainDefinition.rangeMinInclusive = minInclusive;
-            domainDefinition.rangeMaxValue = maxValue;
-            domainDefinition.rangeMaxInclusive = maxInclusive;
-            domains.put(sanitizedDomainName, domainDefinition);
-        } else {
-            assertCompatibleRangeDomain(domainName, domainDefinition, fieldType, minValue, minInclusive, maxValue, maxInclusive);
-        }
-        registerDomainReference(sqlTableDef, sqlColDef, sanitizedDomainName);
-    }
-
-    private void registerDomainReference(DbTable sqlTableDef, DbColumn sqlColDef, String sanitizedDomainName) {
-        DomainAssignment assignment = new DomainAssignment();
-        assignment.tableName = sqlTableDef.getName().getName();
-        assignment.columnName = sqlColDef.getName();
-        assignment.domainName = sanitizedDomainName;
-        assignments.put(assignment.tableName + "." + assignment.columnName, assignment);
-    }
-
-    private void assertCompatibleCodedDomain(
-            String rawDomainName,
-            DomainDefinition existing,
-            String fieldType,
-            Map<String, String> codedValues) {
-        if (existing.kind != DomainKind.CODED) {
-            throw new IllegalStateException("ili2ofgdb: domain name collision between range and coded domain: " + rawDomainName);
-        }
-        if (!existing.fieldType.equals(fieldType)) {
-            throw new IllegalStateException("ili2ofgdb: domain field type mismatch for " + rawDomainName);
-        }
-        if (!existing.codedValues.equals(codedValues)) {
-            throw new IllegalStateException("ili2ofgdb: coded domain definition mismatch for " + rawDomainName);
-        }
-    }
-
-    private void assertCompatibleRangeDomain(
-            String rawDomainName,
-            DomainDefinition existing,
-            String fieldType,
-            String minValue,
-            boolean minInclusive,
-            String maxValue,
-            boolean maxInclusive) {
-        if (existing.kind != DomainKind.RANGE) {
-            throw new IllegalStateException("ili2ofgdb: domain name collision between coded and range domain: " + rawDomainName);
-        }
-        if (!existing.fieldType.equals(fieldType)
-                || !existing.rangeMinValue.equals(minValue)
-                || existing.rangeMinInclusive != minInclusive
-                || !existing.rangeMaxValue.equals(maxValue)
-                || existing.rangeMaxInclusive != maxInclusive) {
-            throw new IllegalStateException("ili2ofgdb: range domain definition mismatch for " + rawDomainName);
-        }
     }
 
     private Map<String, String> buildEnumValues(Element enumOwner, AbstractEnumerationType enumType) {
@@ -759,40 +690,15 @@ public class OfgdbMapping extends AbstractJdbcMapping {
         return "true".equalsIgnoreCase(inactive) || "1".equals(inactive);
     }
 
-    private String calcCardinality(RoleDef role) {
-        long max = role.getCardinality().getMaximum();
-        long oppMax = role.getOppEnd() != null ? role.getOppEnd().getCardinality().getMaximum() : 1;
-        boolean many = max > 1 || max == Cardinality.UNBOUND;
-        boolean oppMany = oppMax > 1 || oppMax == Cardinality.UNBOUND;
-        if (!many && !oppMany) {
-            return "1:1";
-        }
-        if (many && oppMany) {
-            return "m:n";
-        }
-        return "1:n";
-    }
-
     private String sanitizeName(String rawName) {
         return rawName.replaceAll("[^A-Za-z0-9_]", "_");
     }
 
-    private String uniqueRelationshipName(RoleLinkDefinition roleLink, Set<String> usedNames, String destinationTableName) {
-        String base = sanitizeName("_" + roleLink.associationScopedName + "_" + roleLink.roleName);
-        if (roleLink.attributed && "m:n".equalsIgnoreCase(roleLink.cardinality)
-                && destinationTableName != null && destinationTableName.trim().length() > 0) {
-            // GDAL/OpenFileGDB expects the many-to-many mapping table name
-            // to match the relationship class name.
-            base = sanitizeName(destinationTableName);
+    private String normalizeName(String value) {
+        if (value == null) {
+            return "";
         }
-        String name = base;
-        int idx = 2;
-        while (usedNames.contains(name)) {
-            name = base + "_" + idx;
-            idx++;
-        }
-        usedNames.add(name);
-        return name;
+        return value.trim().toUpperCase(Locale.ROOT);
     }
 
     private enum DomainKind {
@@ -800,15 +706,15 @@ public class OfgdbMapping extends AbstractJdbcMapping {
         RANGE
     }
 
-    private static class DomainDefinition {
-        private DomainKind kind = DomainKind.CODED;
-        private String domainName;
-        private String fieldType;
-        private final Map<String, String> codedValues = new LinkedHashMap<String, String>();
-        private String rangeMinValue;
-        private boolean rangeMinInclusive = true;
-        private String rangeMaxValue;
-        private boolean rangeMaxInclusive = true;
+    static class DomainDefinition {
+        DomainKind kind = DomainKind.CODED;
+        String domainName;
+        String fieldType;
+        final Map<String, String> codedValues = new LinkedHashMap<String, String>();
+        String rangeMinValue;
+        boolean rangeMinInclusive = true;
+        String rangeMaxValue;
+        boolean rangeMaxInclusive = true;
     }
 
     private static class RangeBounds {
@@ -816,12 +722,6 @@ public class OfgdbMapping extends AbstractJdbcMapping {
         private boolean minInclusive = true;
         private String maxValue;
         private boolean maxInclusive = true;
-    }
-
-    private static class DomainAssignment {
-        private String tableName;
-        private String columnName;
-        private String domainName;
     }
 
     private static class RoleLinkDefinition {

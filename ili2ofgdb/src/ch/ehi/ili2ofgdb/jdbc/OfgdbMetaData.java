@@ -146,130 +146,65 @@ public class OfgdbMetaData implements DatabaseMetaData {
 			if(!matchesPattern(tableName, tableNamePattern)){
 				continue;
 			}
-			Map<String,ColumnDefinition> columnDefinitions=readColumnDefinitions(tableName);
-			long tableHandle=0L;
+			OfgdbFileGdb.ColumnInfo[] tableColumns;
 			try{
-				tableHandle=conn.getApi().openTable(conn.getDbHandle(), tableName);
-				List<String> fieldNames=conn.getApi().getFieldNames(tableHandle);
-				for(int i=0;i<fieldNames.size();i++){
-					String fieldName=fieldNames.get(i);
-					if(!matchesPattern(fieldName, columnNamePattern)){
-						continue;
-					}
-					Map<String,Object> row=new HashMap<String,Object>();
-					row.put("TABLE_CAT", catalog);
-					row.put("TABLE_SCHEM", schemaPattern);
-					row.put("TABLE_NAME", tableName);
-					row.put("COLUMN_NAME", fieldName);
-					ColumnDefinition columnDefinition=columnDefinitions.get(fieldName.toLowerCase(Locale.ROOT));
-					if(columnDefinition==null){
-						columnDefinition=ColumnDefinition.fallback(fieldName);
-					}
-					row.put("DATA_TYPE", Integer.valueOf(columnDefinition.dataType));
-					row.put("TYPE_NAME", columnDefinition.typeName);
-					row.put("COLUMN_SIZE", columnDefinition.columnSize);
-					row.put("ORDINAL_POSITION", Integer.valueOf(i+1));
-					if(columnDefinition.nullable==null){
-						row.put("NULLABLE", Integer.valueOf(columnNullableUnknown));
-						row.put("IS_NULLABLE", "");
-					}else{
-						boolean nullable=columnDefinition.nullable.booleanValue();
-						row.put("NULLABLE", Integer.valueOf(nullable ? columnNullable : columnNoNulls));
-						row.put("IS_NULLABLE", nullable ? "YES" : "NO");
-					}
-					rows.add(row);
+				tableColumns=conn.getBackend().columns(tableName);
+			}catch(SQLException e){
+				continue;
+			}
+			for(int i=0;i<tableColumns.length;i++){
+				OfgdbFileGdb.ColumnInfo columnDefinition=tableColumns[i];
+				if(!matchesPattern(columnDefinition.name, columnNamePattern)){
+					continue;
 				}
-			}catch(ch.ehi.openfgdb4j.OpenFgdbException e){
-				throw new SQLException("failed to read columns metadata",e);
-			}finally{
-				if(tableHandle!=0L){
-					try {
-						conn.getApi().closeTable(conn.getDbHandle(), tableHandle);
-					} catch (ch.ehi.openfgdb4j.OpenFgdbException ignore) {
-					}
-				}
+				Map<String,Object> row=new HashMap<String,Object>();
+				row.put("TABLE_CAT", catalog);
+				row.put("TABLE_SCHEM", schemaPattern);
+				row.put("TABLE_NAME", tableName);
+				row.put("COLUMN_NAME", columnDefinition.name);
+				row.put("DATA_TYPE", Integer.valueOf(jdbcType(columnDefinition)));
+				row.put("TYPE_NAME", columnDefinition.sqlType());
+				row.put("COLUMN_SIZE", Integer.valueOf(columnDefinition.maxWidth>0?columnDefinition.maxWidth:0));
+				row.put("ORDINAL_POSITION", Integer.valueOf(i+1));
+				boolean nullable=columnDefinition.nullable;
+				row.put("NULLABLE", Integer.valueOf(nullable ? columnNullable : columnNoNulls));
+				row.put("IS_NULLABLE", nullable ? "YES" : "NO");
+				rows.add(row);
 			}
 		}
 		return new OfgdbResultSet(rows,columns);
 	}
 
-	private Map<String,ColumnDefinition> readColumnDefinitions(String tableName) throws SQLException {
-		Map<String,ColumnDefinition> ret=new HashMap<String,ColumnDefinition>();
-		long itemsTable=0L;
-		long cursor=0L;
-		try{
-			itemsTable=conn.getApi().openTable(conn.getDbHandle(), "GDB_Items");
-			List<String> fieldNames=conn.getApi().getFieldNames(itemsTable);
-			String nameColumn=findColumnIgnoreCase(fieldNames, "Name");
-			String definitionColumn=findColumnIgnoreCase(fieldNames, "Definition");
-			if(nameColumn==null || definitionColumn==null){
-				return ret;
-			}
-			cursor=conn.getApi().search(itemsTable, nameColumn+","+definitionColumn, "");
-			while(true){
-				long rowHandle=conn.getApi().fetchRow(cursor);
-				if(rowHandle==0L){
-					return ret;
-				}
-				try{
-					String rowName=conn.getApi().rowGetString(rowHandle, nameColumn);
-					if(rowName==null || !rowName.equalsIgnoreCase(tableName)){
-						continue;
-					}
-					String definitionXml=conn.getApi().rowGetString(rowHandle, definitionColumn);
-					return parseColumnDefinitions(definitionXml);
-				}finally{
-					conn.getApi().closeRow(rowHandle);
-				}
-			}
-		}catch(ch.ehi.openfgdb4j.OpenFgdbException e){
-			return ret;
-		}finally{
-			if(cursor!=0L){
-				try {
-					conn.getApi().closeCursor(cursor);
-				} catch (ch.ehi.openfgdb4j.OpenFgdbException ignore) {
-				}
-			}
-			if(itemsTable!=0L){
-				try {
-					conn.getApi().closeTable(conn.getDbHandle(), itemsTable);
-				} catch (ch.ehi.openfgdb4j.OpenFgdbException ignore) {
-				}
-			}
+	private static int jdbcType(OfgdbFileGdb.ColumnInfo column) {
+		if(column.geometry){
+			return Types.BINARY;
 		}
-	}
-
-	private Map<String,ColumnDefinition> parseColumnDefinitions(String definitionXml) {
-		Map<String,ColumnDefinition> ret=new HashMap<String,ColumnDefinition>();
-		if(definitionXml==null || definitionXml.trim().length()==0){
-			return ret;
+		String type=column.sqlType();
+		if("SMALLINT".equals(type)){
+			return Types.SMALLINT;
 		}
-		try{
-			Document document = DocumentBuilderFactory.newInstance()
-					.newDocumentBuilder()
-					.parse(new InputSource(new StringReader(definitionXml)));
-			NodeList allNodes=document.getElementsByTagName("*");
-			for(int i=0;i<allNodes.getLength();i++){
-				Node node=allNodes.item(i);
-				if(!(node instanceof Element) || !nodeNameMatches(node, "GPFieldInfoEx")){
-					continue;
-				}
-				Element fieldNode=(Element)node;
-				String fieldName=childTagText(fieldNode, "Name");
-				if(fieldName==null || fieldName.trim().length()==0){
-					continue;
-				}
-				ColumnDefinition definition=ColumnDefinition.fromEsriField(
-						childTagText(fieldNode, "FieldType"),
-						parseInteger(childTagText(fieldNode, "Length")),
-						parseBoolean(childTagText(fieldNode, "IsNullable")));
-				ret.put(fieldName.toLowerCase(Locale.ROOT), definition);
-			}
-		}catch(Exception ex){
-			return ret;
+		if("INTEGER".equals(type)){
+			return Types.INTEGER;
 		}
-		return ret;
+		if("BIGINT".equals(type)){
+			return Types.BIGINT;
+		}
+		if("DOUBLE".equals(type)){
+			return Types.DOUBLE;
+		}
+		if("BLOB".equals(type)){
+			return Types.BINARY;
+		}
+		if("TIMESTAMP".equals(type)){
+			return Types.TIMESTAMP;
+		}
+		if("DATE".equals(type)){
+			return Types.DATE;
+		}
+		if("TIME".equals(type)){
+			return Types.TIME;
+		}
+		return Types.VARCHAR;
 	}
 
 	private static Integer parseInteger(String value) {

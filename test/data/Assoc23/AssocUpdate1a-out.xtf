@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?><TRANSFER xmlns="http://www.interlis.ch/INTERLIS2.3">
+<HEADERSECTION SENDER="ili2ofgdb-5.5.3-SNAPSHOT-66b1aa48cfe69e94a0e31bfa7e04a0618d78e115" VERSION="2.3"><MODELS><MODEL NAME="AssocUpdate1" VERSION="2019-11-22" URI="mailto:ce@eisenhutinformatik.ch"></MODEL></MODELS></HEADERSECTION>
+<DATASECTION>
+<AssocUpdate1.TestA BID="3">
+<AssocUpdate1.TestA.ClassA1 TID="c34c86ec-2a75-4a89-a194-f9ebc422f8bc"><attrA>a_a1</attrA></AssocUpdate1.TestA.ClassA1>
+<AssocUpdate1.TestA.ClassA1 TID="a7284ca2-5c41-4479-ba69-66c05bff8fbd"><attrA>a_a2</attrA></AssocUpdate1.TestA.ClassA1>
+<AssocUpdate1.TestA.ClassB1 TID="81fc3941-01ec-4c51-b1ba-46b6295d9b4e"><attrB>a_b1</attrB></AssocUpdate1.TestA.ClassB1>
+<AssocUpdate1.TestA.a2b><a REF="c34c86ec-2a75-4a89-a194-f9ebc422f8bc"></a><b REF="81fc3941-01ec-4c51-b1ba-46b6295d9b4e"></b><attrAB>a_ab1</attrAB></AssocUpdate1.TestA.a2b>
+<AssocUpdate1.TestA.a2b><a REF="a7284ca2-5c41-4479-ba69-66c05bff8fbd"></a><b REF="81fc3941-01ec-4c51-b1ba-46b6295d9b4e"></b><attrAB>a_ab2</attrAB></AssocUpdate1.TestA.a2b>
+</AssocUpdate1.TestA>
+</DATASECTION>
+</TRANSFER>

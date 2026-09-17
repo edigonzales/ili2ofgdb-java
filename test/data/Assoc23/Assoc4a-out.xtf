@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?><TRANSFER xmlns="http://www.interlis.ch/INTERLIS2.3">
+<HEADERSECTION SENDER="ili2ofgdb-5.5.3-SNAPSHOT-66b1aa48cfe69e94a0e31bfa7e04a0618d78e115" VERSION="2.3"><MODELS><MODEL NAME="Assoc4" VERSION="2019-02-04" URI="mailto:ce@eisenhutinformatik.ch"></MODEL></MODELS></HEADERSECTION>
+<DATASECTION>
+<Assoc4.Test BID="3">
+<Assoc4.Test.ClassA1 TID="a1"></Assoc4.Test.ClassA1>
+<Assoc4.Test.ClassB1 TID="b1"><a0 REF="a1"></a0><a1 REF="a1"></a1><a2 REF="a1"></a2></Assoc4.Test.ClassB1>
+<Assoc4.Test.ClassB1 TID="b2"><a0 REF="a1"></a0><a1 REF="a1"><Assoc4.Test.assocab1><attrA1>b2_attrA1</attrA1></Assoc4.Test.assocab1></a1><a2 REF="a1"><Assoc4.Test.assocab2p><attrA2>b2_attrA2</attrA2></Assoc4.Test.assocab2p></a2></Assoc4.Test.ClassB1>
+</Assoc4.Test>
+</DATASECTION>
+</TRANSFER>

@@ -23,6 +23,12 @@ MODEL OfgdbRelationshipTest
       rightRole -- {1} B;
     END OneToOne;
 
+    ASSOCIATION ManyToMany =
+      manyLeft -- {0..*} A;
+      manyRight -- {0..*} B;
+      weight : 0.0 .. 1000.0;
+    END ManyToMany;
+
   END T;
 
 END OfgdbRelationshipTest.

@@ -575,6 +575,7 @@ public final class OfgdbSql {
         public int dimension = 2;
         public int varcharLength = -1;
         public String domain;
+        public boolean spatialIndex;
     }
 
     public static final class CreateTableSpec {
@@ -668,6 +669,7 @@ public final class OfgdbSql {
             column.geometryKind = parts[0].trim().toUpperCase(Locale.ROOT);
             column.srsId = parts.length > 1 ? parseInt(parts[1].trim(), 0) : 0;
             column.dimension = parts.length > 2 ? parseInt(parts[2].trim(), 2) : 2;
+            column.spatialIndex = parts.length > 3 && "INDEX".equalsIgnoreCase(parts[3].trim());
             column.type = "OFGDB_GEOMETRY";
         } else {
             int space = indexOfWhitespace(remaining);

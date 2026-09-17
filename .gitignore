@@ -21,3 +21,6 @@ test/data/**/*-out.itf
 test/data/**/*.gdb/
 test/data/**/exportMetaConfig.ini
 test/data/**/Dataset 10a.itf
+
+# test artifacts of the flavor test data
+ili2ofgdb/test/data/**/*.log

@@ -85,6 +85,9 @@ public final class OfgdbFileGdb implements AutoCloseable {
     /** Fine grained geometry kinds of tables created by this session (MULTILINE, MULTISURFACE, ...). */
     private final Map<String, String> geometryKinds =
             new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
+    /** Tables whose feature class was created with a native spatial index. */
+    private final java.util.Set<String> spatialIndexedTables =
+            new java.util.TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
     private GdbCatalog catalog;
     private FileGeodatabase database;
     private int sessionRefCount = 0;
@@ -368,6 +371,7 @@ public final class OfgdbFileGdb implements AutoCloseable {
         List<FileGdbField> fields = new ArrayList<FileGdbField>();
         FileGdbField geometryField = null;
         GeometryFieldDefinition geometryDefinition = null;
+        boolean spatialIndex = false;
         for (ColumnSpec column : spec.columns) {
             if ("OFGDB_GEOMETRY".equals(column.type)) {
                 GeometryKind kind = toGeometryKind(column.geometryKind);
@@ -381,6 +385,7 @@ public final class OfgdbFileGdb implements AutoCloseable {
                 geometryDefinition = definition;
                 geometryField = FileGdbField.binary(column.name);
                 geometryKinds.put(tableName, column.geometryKind);
+                spatialIndex = column.spatialIndex;
                 continue;
             }
             FileGdbField field = toField(column);
@@ -389,14 +394,23 @@ public final class OfgdbFileGdb implements AutoCloseable {
         try {
             if (geometryDefinition != null) {
                 FeatureClassDefinition.Builder builder =
-                        FeatureClassDefinition.builder(tableName).spatialIndex(false);
+                        FeatureClassDefinition.builder(tableName).spatialIndex(spatialIndex);
                 for (FileGdbField field : fields) {
                     builder.field(field);
                 }
-                CrsDefinition crs = new CrsDefinition(srsIdOf(spec), srsIdOf(spec), "");
-                builder.geometry(geometryDefinition.withWkt("")).crs(crs);
+                CrsDefinition crs;
+                {
+                    int srsId = srsIdOf(spec);
+                    String wkt = ch.ehi.ili2ofgdb.OfgdbCrs.wktFor(srsId);
+                    crs = new CrsDefinition(srsId, srsId, wkt);
+                    geometryDefinition = geometryDefinition.withWkt(wkt);
+                }
+                builder.geometry(geometryDefinition).crs(crs);
                 GdbFeatureWriter writer = database.createFeatureClass(builder.build());
                 writers.put(tableName, new TableWriter(writer, null));
+                if (spatialIndex) {
+                    spatialIndexedTables.add(tableName);
+                }
             } else {
                 TableDefinition.Builder builder = TableDefinition.builder(tableName);
                 for (FileGdbField field : fields) {
@@ -736,7 +750,7 @@ public final class OfgdbFileGdb implements AutoCloseable {
         try {
             boolean featureClass = hasGeometry(columns);
             if (featureClass) {
-                GdbFeatureWriter writer = database.appendFeatures(tableName, false);
+                GdbFeatureWriter writer = database.appendFeatures(tableName, hasSpatialIndex(tableName));
                 TableWriter result = new TableWriter(writer, null);
                 writers.put(tableName, result);
                 return result;
@@ -746,12 +760,29 @@ public final class OfgdbFileGdb implements AutoCloseable {
             writers.put(tableName, result);
             return result;
         } catch (IOException e) {
-            throw new SQLException("failed to open " + tableName + " for writing", e);
+            throw new SQLException(
+                    "failed to open " + tableName + " for writing: " + e.getMessage(), e);
         }
     }
 
     private TableWriter ensureWriter(String tableName, ColumnInfo[] columns) throws SQLException {
         return writer(tableName, null, columns);
+    }
+
+    /** True if the feature class carries a native spatial index (.spx). */
+    private boolean hasSpatialIndex(String tableName) {
+        if (spatialIndexedTables.contains(tableName)) {
+            return true;
+        }
+        try {
+            Dataset dataset = datasetOf(resolveTableName(tableName));
+            if (dataset == null || !dataset.isFeatureClass()) {
+                return false;
+            }
+            return Files.exists(ch.so.agi.filegdb.index.SpatialIndex.path(dataset.tableFile()));
+        } catch (SQLException ex) {
+            return false;
+        }
     }
 
     private static boolean isMultiKind(String fineKind) {
@@ -898,24 +929,30 @@ public final class OfgdbFileGdb implements AutoCloseable {
     }
 
     public synchronized void createRelationshipClass(String name, String originTable,
-            String destinationTable, String originPrimaryKey, String destinationForeignKey,
-            String forwardLabel, String backwardLabel, String cardinality, boolean composite)
-            throws SQLException {
+            String destinationTable, String originPrimaryKey, String originForeignKey,
+            String destinationPrimaryKey, String destinationForeignKey, String forwardLabel,
+            String backwardLabel, String cardinality, boolean composite, String mappingTable,
+            boolean attributed) throws SQLException {
         try {
             if (listRelationships().contains(name)) {
                 return;
             }
-            RelationshipDefinition definition = RelationshipDefinition.builder(name)
+            RelationshipDefinition.Builder builder = RelationshipDefinition.builder(name)
                     .originClass(originTable)
                     .destinationClass(destinationTable)
                     .cardinality(toCardinality(cardinality))
                     .originPrimaryKey(originPrimaryKey)
-                    .originForeignKey(destinationForeignKey)
+                    .originForeignKey(originForeignKey)
+                    .destinationPrimaryKey(destinationPrimaryKey)
+                    .destinationForeignKey(destinationForeignKey)
                     .labels(forwardLabel == null ? "" : forwardLabel,
                             backwardLabel == null ? "" : backwardLabel)
-                    .composite(composite)
-                    .build();
-            database.createRelationship(definition);
+                    .composite(composite);
+            if (mappingTable != null) {
+                builder.mappingTable(mappingTable);
+            }
+            builder.attributed(attributed);
+            database.createRelationship(builder.build());
             catalog = null;
         } catch (IOException | RuntimeException e) {
             throw new SQLException("failed to create relationship " + name, e);
@@ -992,6 +1029,7 @@ public final class OfgdbFileGdb implements AutoCloseable {
         knownTables.clear();
         writers.clear();
         geometryKinds.clear();
+        spatialIndexedTables.clear();
         nextIds.clear();
         refreshTables();
     }

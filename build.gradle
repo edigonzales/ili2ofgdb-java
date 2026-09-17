@@ -231,6 +231,9 @@ sourceSets {
     java {
     	srcDirs=['ili2ofgdb/src']
     }
+    resources {
+    	srcDirs=['ili2ofgdb/resources']
+    }
     compileClasspath += sourceSets.main.output
   }
   ili2ofgdbTest {

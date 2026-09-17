@@ -31,11 +31,11 @@ public class OfgdbMappingPostScriptTest {
         schemaImport(setup, RELATIONSHIP_MODEL);
 
         List<String> relationships = OfgdbTestCatalogue.relationships(TEST_DB);
-        assertEquals(2, relationships.size());
+        assertEquals(3, relationships.size());
         boolean oneToMany = false;
         boolean oneToOne = false;
         for (String relationship : relationships) {
-            String definition = OfgdbTestCatalogue.itemDefinition(TEST_DB, relationship);
+            String definition = OfgdbTestCatalogue.relationshipDefinition(TEST_DB, relationship);
             assertNotNull(definition);
             if (definition.contains("esriRelCardinalityOneToMany")) {
                 oneToMany = true;
@@ -46,6 +46,33 @@ public class OfgdbMappingPostScriptTest {
         }
         assertTrue("expected a 1:n relationship class", oneToMany);
         assertTrue("expected a 1:1 relationship class", oneToOne);
+    }
+
+    /**
+     * An n:m association is mapped to an association table by ili2db; the relationship class is
+     * bound to that existing table (same name, attributed) instead of creating a new mapping table.
+     */
+    @Test
+    public void createsManyToManyRelationshipOverTheAssociationTable() throws Exception {
+        OfgdbTestSetup setup = new OfgdbTestSetup(TEST_DB);
+        setup.resetDb();
+        schemaImport(setup, RELATIONSHIP_MODEL);
+
+        String manyToManyName = null;
+        String definition = null;
+        for (String relationship : OfgdbTestCatalogue.relationships(TEST_DB)) {
+            String itemDefinition = OfgdbTestCatalogue.relationshipDefinition(TEST_DB, relationship);
+            if (itemDefinition != null && itemDefinition.contains("esriRelCardinalityManyToMany")) {
+                manyToManyName = relationship;
+                definition = itemDefinition;
+            }
+        }
+        assertNotNull("expected an n:m relationship class", manyToManyName);
+        assertTrue("expected an attributed relationship: " + definition,
+                definition.contains("IsAttributed") && definition.contains(">true<"));
+        // the relationship is bound to the existing association table of ili2db
+        assertNotNull("expected the mapping/association table " + manyToManyName,
+                OfgdbTestCatalogue.definition(TEST_DB, manyToManyName));
     }
 
     @Test

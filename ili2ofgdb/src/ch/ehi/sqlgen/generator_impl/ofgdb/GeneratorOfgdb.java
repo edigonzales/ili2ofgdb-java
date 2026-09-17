@@ -302,7 +302,12 @@ public class GeneratorOfgdb implements Generator {
         if (dim != 3) {
             dim = 2;
         }
-        return "OFGDB_GEOMETRY(" + kind + "," + epsg + "," + dim + ")";
+        String spatialIndex = "";
+        Object geomIndex = column.getCustomValue(ch.ehi.ili2ofgdb.OfgdbMapping.GEOM_INDEX_CUSTOM_KEY);
+        if (geomIndex != null && "true".equalsIgnoreCase(geomIndex.toString())) {
+            spatialIndex = ",INDEX";
+        }
+        return "OFGDB_GEOMETRY(" + kind + "," + epsg + "," + dim + spatialIndex + ")";
     }
 
     private void execSql(String sql, boolean ignoreIfExists) throws IOException {

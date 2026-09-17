@@ -77,6 +77,8 @@ public class OfgdbMapping extends AbstractJdbcMapping {
             "ch.ehi.ili2ofgdb.fgdbCreateRelationshipClasses";
     /** Custom value key that carries the domain name from the mapping to the DDL generator. */
     public static final String DOMAIN_CUSTOM_KEY = "ch.ehi.ili2ofgdb.domain";
+    /** Custom value key that marks a geometry column for a native spatial index. */
+    public static final String GEOM_INDEX_CUSTOM_KEY = "ch.ehi.ili2ofgdb.geomIndex";
 
     private static final String TRAFO_INHERITANCE_TAG = "ch.ehi.ili2db.inheritance";
     private static final String TRAFO_EMBEDDED = "embedded";
@@ -86,6 +88,7 @@ public class OfgdbMapping extends AbstractJdbcMapping {
     private boolean createRangeDomains = false;
     private boolean includeInactiveEnumValues = false;
     private boolean createRelationships = true;
+    private boolean createGeomIndex = false;
     private NameMapping enumNameMapping = null;
     private TransferDescription transferDescription = null;
     private String defaultXyResolution = null;
@@ -101,6 +104,7 @@ public class OfgdbMapping extends AbstractJdbcMapping {
         createRangeDomains = config.isCreateCreateNumChecks();
         includeInactiveEnumValues = isTrue(config, FGDB_INCLUDE_INACTIVE_ENUM_VALUES, false);
         createRelationships = isTrue(config, FGDB_CREATE_RELATIONSHIP_CLASSES, true);
+        createGeomIndex = Config.TRUE.equalsIgnoreCase(config.getValue(Config.CREATE_GEOM_INDEX));
         transferDescription = (TransferDescription) config.getTransientObject(Config.TRANSIENT_MODEL);
         enumNameMapping = null;
         if (transferDescription != null) {
@@ -139,6 +143,9 @@ public class OfgdbMapping extends AbstractJdbcMapping {
         if (sqlColDef instanceof DbColGeometry) {
             sqlColDef.setCustomValue(GeneratorOfgdb.XY_RESOLUTION, defaultXyResolution);
             sqlColDef.setCustomValue(GeneratorOfgdb.XY_TOLERANCE, defaultXyTolerance);
+            if (createGeomIndex) {
+                sqlColDef.setCustomValue(GEOM_INDEX_CUSTOM_KEY, Config.TRUE);
+            }
         }
         if (!createDomains || sqlTableDef == null || sqlColDef == null || iliAttrDef == null) {
             return;
@@ -394,36 +401,93 @@ public class OfgdbMapping extends AbstractJdbcMapping {
             existingRelationships.add(normalizeName(name));
         }
         Set<String> relationshipNames = new HashSet<String>();
+        Map<String, RoleLinkDefinition> manyToManyPairs =
+                new LinkedHashMap<String, RoleLinkDefinition>();
         for (RoleLinkDefinition roleLink : roleLinks) {
             if ("m:n".equalsIgnoreCase(roleLink.cardinality)) {
-                EhiLogger.logAdaption(
-                        "ili2ofgdb: skip many-to-many relationship class " + roleLink.associationScopedName
-                                + "; the association table already carries the mapping");
+                String key = roleLink.associationScopedName + "|" + normalizeName(roleLink.sourceTable);
+                RoleLinkDefinition first = manyToManyPairs.get(key);
+                if (first == null) {
+                    manyToManyPairs.put(key, roleLink);
+                } else if (first.peer == null) {
+                    first.peer = roleLink;
+                }
                 continue;
             }
-            String originTable = backend.resolveTableName(roleLink.targetTable);
-            String destinationTable = backend.resolveTableName(roleLink.sourceTable);
-            if (!hasTable(backend, originTable) || !hasTable(backend, destinationTable)) {
-                EhiLogger.logAdaption("ili2ofgdb: skip relationship; table missing: "
-                        + roleLink.targetTable + " -> " + roleLink.sourceTable);
-                continue;
-            }
-            if (!hasColumn(backend, originTable, roleLink.targetPkColumn)
-                    || !hasColumn(backend, destinationTable, roleLink.sourceFkColumn)) {
-                EhiLogger.logAdaption("ili2ofgdb: skip relationship; key column missing: "
-                        + originTable + "." + roleLink.targetPkColumn + " / "
-                        + destinationTable + "." + roleLink.sourceFkColumn);
-                continue;
-            }
-            String relationshipName = uniqueRelationshipName(roleLink, relationshipNames);
-            if (existingRelationships.contains(normalizeName(relationshipName))) {
-                continue;
-            }
-            backend.createRelationshipClass(relationshipName, originTable, destinationTable,
-                    roleLink.targetPkColumn, roleLink.sourceFkColumn,
-                    roleLink.forwardLabel, roleLink.backwardLabel, roleLink.cardinality, false);
-            existingRelationships.add(normalizeName(relationshipName));
+            createSimpleRelationship(backend, roleLink, existingRelationships, relationshipNames);
         }
+        for (RoleLinkDefinition pair : manyToManyPairs.values()) {
+            createManyToManyRelationship(backend, pair, existingRelationships);
+        }
+    }
+
+    private void createSimpleRelationship(OfgdbFileGdb backend, RoleLinkDefinition roleLink,
+            Set<String> existingRelationships, Set<String> relationshipNames) throws SQLException {
+        String originTable = backend.resolveTableName(roleLink.targetTable);
+        String destinationTable = backend.resolveTableName(roleLink.sourceTable);
+        if (!hasTable(backend, originTable) || !hasTable(backend, destinationTable)) {
+            EhiLogger.logAdaption("ili2ofgdb: skip relationship; table missing: "
+                    + roleLink.targetTable + " -> " + roleLink.sourceTable);
+            return;
+        }
+        if (!hasColumn(backend, originTable, roleLink.targetPkColumn)
+                || !hasColumn(backend, destinationTable, roleLink.sourceFkColumn)) {
+            EhiLogger.logAdaption("ili2ofgdb: skip relationship; key column missing: "
+                    + originTable + "." + roleLink.targetPkColumn + " / "
+                    + destinationTable + "." + roleLink.sourceFkColumn);
+            return;
+        }
+        String relationshipName = uniqueRelationshipName(roleLink, relationshipNames);
+        if (existingRelationships.contains(normalizeName(relationshipName))) {
+            return;
+        }
+        backend.createRelationshipClass(relationshipName, originTable, destinationTable,
+                roleLink.targetPkColumn, roleLink.sourceFkColumn, "", "",
+                roleLink.forwardLabel, roleLink.backwardLabel, roleLink.cardinality, false, null,
+                false);
+        existingRelationships.add(normalizeName(relationshipName));
+    }
+
+    /**
+     * Creates the relationship class of an n:m association over the association table that ili2db
+     * already created (name of relationship class and mapping table are identical, as expected by
+     * the file geodatabase).
+     */
+    private void createManyToManyRelationship(OfgdbFileGdb backend, RoleLinkDefinition originRole,
+            Set<String> existingRelationships) throws SQLException {
+        if (originRole.peer == null) {
+            EhiLogger.logAdaption("ili2ofgdb: skip many-to-many relationship "
+                    + originRole.associationScopedName + "; only one role of the association table "
+                    + originRole.sourceTable + " was found");
+            return;
+        }
+        String mappingTable = backend.resolveTableName(originRole.sourceTable);
+        String originTable = backend.resolveTableName(originRole.targetTable);
+        String destinationTable = backend.resolveTableName(originRole.peer.targetTable);
+        if (!hasTable(backend, mappingTable) || !hasTable(backend, originTable)
+                || !hasTable(backend, destinationTable)) {
+            EhiLogger.logAdaption("ili2ofgdb: skip many-to-many relationship; table missing: "
+                    + originTable + " / " + destinationTable + " / " + mappingTable);
+            return;
+        }
+        if (!hasColumn(backend, mappingTable, originRole.sourceFkColumn)
+                || !hasColumn(backend, mappingTable, originRole.peer.sourceFkColumn)
+                || !hasColumn(backend, originTable, originRole.targetPkColumn)
+                || !hasColumn(backend, destinationTable, originRole.peer.targetPkColumn)) {
+            EhiLogger.logAdaption("ili2ofgdb: skip many-to-many relationship; key column missing: "
+                    + mappingTable + "." + originRole.sourceFkColumn + " / "
+                    + mappingTable + "." + originRole.peer.sourceFkColumn);
+            return;
+        }
+        if (existingRelationships.contains(normalizeName(mappingTable))) {
+            return;
+        }
+        backend.createRelationshipClass(mappingTable, originTable, destinationTable,
+                originRole.targetPkColumn, originRole.sourceFkColumn,
+                originRole.peer.targetPkColumn, originRole.peer.sourceFkColumn,
+                originRole.peer.forwardLabel, originRole.peer.backwardLabel, "m:n", false,
+                mappingTable, originRole.attributed);
+        existingRelationships.add(normalizeName(mappingTable));
     }
 
     private boolean hasTable(OfgdbFileGdb backend, String tableName) throws SQLException {
@@ -777,5 +841,7 @@ public class OfgdbMapping extends AbstractJdbcMapping {
         private boolean embedded;
         private boolean attributed;
         private String cardinality;
+        /** the second role of an n:m association (same association table) */
+        private RoleLinkDefinition peer;
     }
 }

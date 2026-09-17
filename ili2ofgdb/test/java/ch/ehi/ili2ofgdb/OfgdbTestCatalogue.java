@@ -47,6 +47,24 @@ public final class OfgdbTestCatalogue {
         }
     }
 
+    /**
+     * Returns the definition XML of a relationship class. Needed because an n:m relationship class
+     * shares its name with its mapping table.
+     */
+    public static String relationshipDefinition(String gdbPath, String relationshipName)
+            throws Exception {
+        try (FileGeodatabase database = FileGeodatabase.open(Paths.get(gdbPath))) {
+            for (ch.so.agi.filegdb.catalog.GdbItem item : database.items()) {
+                String definition = item.definition();
+                if (definition != null && definition.contains("DERelationshipClassInfo")
+                        && item.name() != null && item.name().equalsIgnoreCase(relationshipName)) {
+                    return definition;
+                }
+            }
+            return null;
+        }
+    }
+
     public static List<String> domains(String gdbPath) throws Exception {
         try (FileGeodatabase database = FileGeodatabase.open(Paths.get(gdbPath))) {
             List<String> names = new ArrayList<String>();

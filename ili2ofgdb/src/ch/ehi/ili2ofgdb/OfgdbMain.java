@@ -74,6 +74,7 @@ public class OfgdbMain extends ch.ehi.ili2db.AbstractMain {
         // TODO: Braucht es das? Kann m.E. bei uns nicht vorkommen resp. spiel einfach keine Rolle. Gugus.
         //System.err.println("--fgdbIncludeInactiveEnumValues         Include inactive enum values in created domains.");
         System.err.println("--fgdbCreateRelationshipClasses         Create FGDB relationship classes from model links.");
+        System.err.println("--fgdbWktDir <dir>                      Directory with <epsg>.wkt files for CRS definitions not bundled with ili2ofgdb.");
     }
 
     @Override
@@ -100,6 +101,10 @@ public class OfgdbMain extends ch.ehi.ili2db.AbstractMain {
         } else if (isOption(arg, "--fgdbCreateRelationshipClasses")) {
             argi++;
             config.setValue(OfgdbMapping.FGDB_CREATE_RELATIONSHIP_CLASSES, booleanArgument(parseBooleanArgument(arg)));
+        } else if (arg.equals("--fgdbWktDir")) {
+            argi++;
+            ch.ehi.ili2ofgdb.OfgdbCrs.setWktDirectory(args[argi]);
+            argi++;
         }
         return argi;
     }
